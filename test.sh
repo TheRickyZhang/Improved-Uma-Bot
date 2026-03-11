@@ -2,13 +2,6 @@
 set -e
 cd "$(dirname "$0")"
 
-git pull --autostash -X ours --no-edit || true
-
-if ! command -v adb &>/dev/null; then
-    echo "adb not found. Install with: sudo pacman -S android-tools"
-    exit 1
-fi
-
 pick_python() {
     for py in python3.12 python3.11 python3.10 python3 python; do
         if ! command -v "$py" &>/dev/null; then
@@ -26,15 +19,15 @@ pick_python() {
 }
 
 PYTHON=$(pick_python || true)
-
 if [ -z "$PYTHON" ]; then
     echo "Supported Python not found. Install Python 3.10-3.13."
     exit 1
 fi
 
-$PYTHON -m pip install -r requirements.txt --quiet
+echo "Using $PYTHON"
 
-export UAT_AUTORESTART=1
-
-$PYTHON bake_templates.py
-$PYTHON main.py
+if [ $# -gt 0 ]; then
+    "$PYTHON" -m unittest "$@"
+else
+    "$PYTHON" -m unittest discover -s tests -p "test_*.py"
+fi

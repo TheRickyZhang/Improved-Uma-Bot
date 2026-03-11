@@ -12,9 +12,19 @@ RESTARTING = False
 def write_json(path, data):
     try:
         import json
+        import tempfile
         os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
-        with open(path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False)
+        folder = os.path.dirname(path) or '.'
+        fd, tmp_path = tempfile.mkstemp(prefix=".tmp_", suffix=".json", dir=folder)
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
         return True
     except Exception:
         return False

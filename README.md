@@ -13,14 +13,17 @@ If anyone has time to kill you can help to verify and screenshot cases where the
 - [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
+- [Testing](#testing)
 - [Emulator Setup](#emulator-setup)
 - [Configuration](#configuration)
 - [Stat Caps Guide](#stat-caps-guide)
 - [GPU Acceleration](#gpu-acceleration)
 - [Troubleshooting](#troubleshooting)
+- [Task UI and Save Model](docs/TASK_UI.md)
 - [Changelog](#changelog)
 - [Credits](#credits)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Scoring](docs/SCORING.md)
 
 ---
 
@@ -54,7 +57,7 @@ If anyone has time to kill you can help to verify and screenshot cases where the
 - Android emulator (MuMu Player recommended)
 
 ### Linux
-- Python 3.12 (3.14 not yet supported by paddlepaddle)
+- Python 3.10+ (3.14 not yet supported by paddlepaddle)
 - `android-tools` package (provides `adb`)
 - Waydroid with GApps and libhoudini (ARM translation)
 
@@ -74,24 +77,40 @@ cd umamusume-sweepy
 **Windows:**
 ```bash
 winget install -e --id Python.Python.3.12
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 **Linux (Arch):**
 ```bash
-yay -S python312 android-tools
-python3.12 -m ensurepip --upgrade
-python3.12 -m pip install -r requirements.txt
+yay -S python android-tools
+python3 -m ensurepip --upgrade
+python3 -m pip install -r requirements.txt
 ```
 
 ### Step 3: Run the Bot
 
 ```bash
 python main.py        # Windows
-python3.12 main.py    # Linux
+python3 main.py       # Linux
 ```
 
 Or use the launcher scripts: `start.bat` (Windows) / `start.sh` (Linux).
+
+---
+
+## Testing
+
+Run all tests (auto-selects a supported Python 3.10-3.13 interpreter):
+
+```bash
+./test.sh
+```
+
+Run a specific test module:
+
+```bash
+./test.sh tests/test_training_selection_scoring.py
+```
 
 ---
 
@@ -120,10 +139,10 @@ waydroid session start &
 
 # Install GApps (for Play Store)
 git clone https://github.com/casualsnek/waydroid_script
-cd waydroid_script && sudo python3.12 main.py install gapps
+cd waydroid_script && sudo python3 main.py install gapps
 
 # Install ARM translation (required — game is ARM-only)
-sudo python3.12 main.py install libhoudini
+sudo python3 main.py install libhoudini
 
 # Network setup (if no internet inside Waydroid)
 sudo sysctl -w net.ipv4.ip_forward=1
@@ -132,7 +151,7 @@ sudo iptables -P FORWARD ACCEPT
 
 # Connect ADB and run
 adb connect 192.168.240.112:5555
-python3.12 main.py
+python3 main.py
 ```
 ---
 
@@ -140,6 +159,8 @@ python3.12 main.py
 
 1. Set graphics to `Standard` in-game (not `Basic`)
 2. Manually select your Uma Musume, Legacy Uma, and Support Cards before starting
+3. For task settings organization, running-task editing, and persistence behavior, see [docs/TASK_UI.md](docs/TASK_UI.md)
+4. For scoring formulas and weights, see [docs/SCORING.md](docs/SCORING.md)
 
 ---
 

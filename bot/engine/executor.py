@@ -28,6 +28,84 @@ log = logger.get_logger(__name__)
 
 debug = True
 
+_LIVE_CONTEXT_LOCK = threading.Lock()
+_LIVE_CONTEXTS = {}
+_LIVE_SAFE_FIELDS = (
+    "allow_recover_tp",
+    "base_score",
+    "compensate_failure",
+    "cure_asap_conditions",
+    "event_overrides",
+    "event_weights",
+    "extra_weight",
+    "failure_rate_divisor",
+    "friendship_green_discount",
+    "friendship_score_groups",
+    "hint_boost_characters",
+    "hint_boost_multiplier",
+    "learn_skill_only_user_provided",
+    "learn_skill_threshold",
+    "manual_purchase_at_end",
+    "motivation_threshold_year1",
+    "motivation_threshold_year2",
+    "motivation_threshold_year3",
+    "npc_weight",
+    "override_insufficient_fans_forced_races",
+    "pal_card_multiplier",
+    "pal_friendship_score",
+    "pal_name",
+    "pal_thresholds",
+    "prioritize_recreation",
+    "rest_threshold",
+    "score_value",
+    "skip_double_circle_unless_high_hint",
+    "spirit_explosion",
+    "stat_cap_penalties",
+    "stat_value_multiplier",
+    "summer_score_threshold",
+    "use_last_parents",
+    "wit_race_search_threshold",
+    "wit_special_multiplier",
+)
+
+
+def _clone_runtime_value(value):
+    if isinstance(value, list):
+        return [_clone_runtime_value(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _clone_runtime_value(v) for k, v in value.items()}
+    return value
+
+
+def register_live_context(task_id: str, ctx):
+    with _LIVE_CONTEXT_LOCK:
+        _LIVE_CONTEXTS[task_id] = ctx
+
+
+def unregister_live_context(task_id: str):
+    with _LIVE_CONTEXT_LOCK:
+        _LIVE_CONTEXTS.pop(task_id, None)
+
+
+def _apply_live_safe_fields(target, source):
+    if target is None or source is None:
+        return
+    for field in _LIVE_SAFE_FIELDS:
+        if hasattr(source, field):
+            setattr(target, field, _clone_runtime_value(getattr(source, field)))
+
+
+def apply_live_runtime_update(task: Task, new_detail) -> bool:
+    if task is None or new_detail is None:
+        return False
+    _apply_live_safe_fields(getattr(task, "detail", None), new_detail)
+    with _LIVE_CONTEXT_LOCK:
+        ctx = _LIVE_CONTEXTS.get(getattr(task, "task_id", None))
+    if ctx is None:
+        return False
+    _apply_live_safe_fields(getattr(ctx, "cultivate_detail", None), getattr(task, "detail", None))
+    return True
+
 
 def get_controller() -> U2AndroidController:
     return U2AndroidController()
@@ -161,6 +239,7 @@ class Executor:
             controller.init_env()
             ctx = manifest.build_context(task, controller)
             ctx.ctrl = controller
+            register_live_context(task.task_id, ctx)
 
             task.task_status = TaskStatus.TASK_STATUS_RUNNING
             task.start_task()
@@ -376,6 +455,7 @@ class Executor:
         else:
             self.active = False
         task.end_task_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        unregister_live_context(task.task_id)
         push_system_notification("任务结束", str(getattr(getattr(task, 'end_task_reason', None), 'value', '')), 10)
         controller.destroy()
         self.close_pool()

@@ -54,6 +54,32 @@ class Scheduler:
                     return True
             return False
 
+    def update_task(self, task_id, new_task):
+        running_task = None
+        running_new_detail = None
+        with self._executor_lock:
+            for task in self.task_list:
+                if task.task_id != task_id:
+                    continue
+                task.app_name = new_task.app_name
+                task.task_type = new_task.task_type
+                task.task_desc = new_task.task_desc
+                task.cron_job_config = new_task.cron_job_config
+                if getattr(task, "task_status", None) != TaskStatus.TASK_STATUS_RUNNING:
+                    task.task_execute_mode = new_task.task_execute_mode
+                    if hasattr(task, "detail") and hasattr(new_task, "detail"):
+                        task.detail = new_task.detail
+                    return {"updated": True, "live_applied": False, "running_limited": False}
+                running_task = task
+                running_new_detail = getattr(new_task, "detail", None)
+                if hasattr(task, "detail") and hasattr(new_task, "detail"):
+                    task.detail = new_task.detail
+                break
+        if running_task is None:
+            return {"updated": False, "live_applied": False, "running_limited": False}
+        live_applied = executor.apply_live_runtime_update(running_task, running_new_detail)
+        return {"updated": True, "live_applied": live_applied, "running_limited": True}
+
     def reset_task(self, task_id):
         with self._executor_lock:
             reset_idx = -1
@@ -155,7 +181,4 @@ class Scheduler:
 
 
 scheduler = Scheduler()
-
-
-
 

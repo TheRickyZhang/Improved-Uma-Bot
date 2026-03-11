@@ -1,5 +1,4 @@
 import axios from 'axios'
-import qs from "qs";
 import router from '../router/index'
 import api from "./api";
 
@@ -118,7 +117,7 @@ export default {
     let request = {
       method: "PUT",
       url: url,
-      data: qs.stringify(param)
+      data: param
     };
     if(requireAuth&&token!==undefined&&token!==''&&token.length!==0){
       request.headers = {'authorization':authorizationPrefix + token}
@@ -130,7 +129,7 @@ export default {
     let request = {
       method: "PATCH",
       url: url,
-      data: qs.stringify(param)
+      data: param
     };
     if(requireAuth&&token!==undefined&&token!==''&&token.length!==0){
       request.headers = {'authorization':authorizationPrefix + token}

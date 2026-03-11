@@ -3,10 +3,14 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content" :class="{ 'dimmed': showAoharuConfigModal || showSupportCardSelectModal }">
         <div class="modal-header d-flex align-items-center justify-content-between">
-          <h5 class="mb-0">Create New Task</h5>
+          <div>
+            <h5 class="mb-0">{{ modalTitle }}</h5>
+            <small v-if="isEditMode" class="text-muted">Task ID: {{ editingTaskId || '-' }}</small>
+            <small v-if="isEditingRunningTask" class="d-block text-muted">Running task detected: save applies safe runtime fields live.</small>
+          </div>
           <div class="header-actions">
-            <button type="button" class="btn btn-sm btn--outline" @click="cancelTask">Cancel</button>
-            <button type="button" class="btn btn-sm btn--primary" @click="addTask">Confirm</button>
+            <button type="button" class="btn btn-sm btn--outline" :disabled="isSavingTask" @click="cancelTask">Cancel</button>
+            <button type="button" class="btn btn-sm btn--primary" :disabled="isSavingTask" @click="addTask">{{ submitLabel }}</button>
           </div>
         </div>
         <div class="modal-body modal-body--split" ref="scrollPane">
@@ -23,12 +27,14 @@
               <div class="category-title">General</div>
                             <div class="form-group">
                 <label for="selectExecuteMode">Execution Mode</label>
-                <select v-model.number="selectedExecuteMode" class="form-control" id="selectExecuteMode">
+                <select v-model.number="selectedExecuteMode" class="form-control" id="selectExecuteMode" :disabled="isEditingRunningTask">
                   <option :value="1">Single Execution</option>
                   <option :value="3">Loop until canceled</option>
                   <option :value="4">Team Trials</option>
                   <option :value="5">Full Auto (Career + Team Trials Loop)</option>
                 </select>
+                <small v-if="isEditingRunningTask" class="form-text text-muted">Execution mode for a currently running task is locked until the task stops.</small>
+                <small v-if="isEditingRunningTask" class="form-text text-muted">Safe scoring/runtime settings are live-applied on save; mode and structural settings apply on next run.</small>
               </div>
               <div class="row">
                 <div class="col">
@@ -183,6 +189,77 @@
                 </div>
               </div>
             </div>
+            <div class="category-card" id="category-decision-docs">
+              <div class="category-title">Decision Documentation</div>
+              <div class="decision-docs">
+                <p class="decision-docs-lead">
+                  Training choice is deterministic scoring, not black-box policy inference.
+                </p>
+                <pre class="decision-formula">final_score =
+(base + friendship + npc + stats + hint + energy + scenario_additive)
+* pal_multiplier
+* failure_multiplier
+* scenario_multiplier
+* stat_cap_multiplier
+* extra_weight_multiplier</pre>
+
+                <details class="advanced-block" open>
+                  <summary>How Scores Are Built</summary>
+                  <div class="advanced-block-body">
+                    <ul class="decision-list">
+                      <li><strong>Friendship:</strong> <code>score_value[period][0]</code>; green uses <code>friendship_green_discount</code>.</li>
+                      <li><strong>NPC:</strong> <code>npc_weight[period]</code> per NPC in the facility.</li>
+                      <li><strong>Stats:</strong> detected stat gains multiplied by <code>stat_value_multiplier</code>.</li>
+                      <li><strong>Hint:</strong> <code>score_value[period][2]</code>, optionally boosted by hint-boost settings.</li>
+                      <li><strong>Energy:</strong> detected energy delta multiplied by <code>score_value[period][1]</code>.</li>
+                      <li><strong>Scenario:</strong> scenario-specific additive/multipliers (Aoharu special/spirit/wit-special).</li>
+                    </ul>
+                  </div>
+                </details>
+
+                <details class="advanced-block" open>
+                  <summary>Multipliers and Penalties</summary>
+                  <div class="advanced-block-body">
+                    <ul class="decision-list">
+                      <li><strong>PAL:</strong> applies <code>pal_card_multiplier</code> when PAL card is present.</li>
+                      <li><strong>Failure compensation:</strong> if enabled, <code>max(0, 1 - failure_rate / failure_rate_divisor)</code>.</li>
+                      <li><strong>Stat cap:</strong> uses <code>stat_cap_penalties</code> against current stat vs target stat.</li>
+                      <li><strong>Extra weight:</strong> per-facility multiplier from <code>extra_weight</code> (summer row in camp).</li>
+                    </ul>
+                  </div>
+                </details>
+
+                <details class="advanced-block" open>
+                  <summary>Operation Priority and Tie Rules</summary>
+                  <div class="advanced-block-body">
+                    <ul class="decision-list">
+                      <li><strong>Pre-check override:</strong> Trip/Rest/Medic/Race can override training pick.</li>
+                      <li><strong>Period buckets:</strong> Junior 1-24, Classic 25-48, Senior early 49-60, Senior late 61-72, Finale 73+.</li>
+                      <li><strong>Blocked training:</strong> if only one facility is available, it is forced.</li>
+                      <li><strong>Tie-break:</strong> lowest index wins (Speed, Stamina, Power, Guts, Wit).</li>
+                      <li><strong>Summer conserve window:</strong> threshold uses <code>summer_score_threshold</code>.</li>
+                      <li><strong>Wit race search:</strong> low max score + high energy can trigger race search via <code>wit_race_search_threshold</code>.</li>
+                    </ul>
+                  </div>
+                </details>
+
+                <details class="advanced-block">
+                  <summary>Where These Weights Come From</summary>
+                  <div class="advanced-block-body">
+                    <ul class="decision-list">
+                      <li><strong>Primary source:</strong> fields in this modal and loaded preset values.</li>
+                      <li><strong>Backend binding:</strong> values are saved into task attachment and copied into runtime context.</li>
+                      <li><strong>Fallback defaults:</strong> used if a field is missing; defaults are defined in scoring constants.</li>
+                    </ul>
+                    <p class="decision-note">
+                      For code-level details: <code>module/umamusume/script/cultivate_task/training_select.py</code>,
+                      <code>module/umamusume/script/cultivate_task/ai.py</code>,
+                      <code>module/umamusume/constants/scoring_constants.py</code>.
+                    </p>
+                  </div>
+                </details>
+              </div>
+            </div>
             <!-- Limited Time Module: Fujikiseki Show Mode -->
             <!-- <div class="row">
               <div class="col-3">
@@ -224,7 +301,7 @@
                     <label>Save Preset</label>
                     <div class="dropdown preset-save-group">
                       <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle align-self-stretch"
-                        @click="togglePresetMenu">Save Preset</button>
+                        :disabled="isSavingPreset" @click="togglePresetMenu">{{ isSavingPreset ? 'Saving...' : 'Save Preset' }}</button>
                       <div class="dropdown-menu show" v-if="showPresetMenu">
                         <a href="#" class="dropdown-item" @click.prevent="selectPresetAction('add')">Add new preset</a>
                         <a href="#" class="dropdown-item" @click.prevent="selectPresetAction('overwrite')">Overwrite
@@ -237,7 +314,7 @@
                       <div class="input-group input-group-sm">
                         <input v-model="presetNameEdit" type="text" class="form-control" placeholder="Preset Name">
                         <div class="input-group-append">
-                          <button class="btn btn-sm auto-btn" type="button" @click="confirmAddPreset">Save</button>
+                          <button class="btn btn-sm auto-btn" type="button" :disabled="isSavingPreset" @click="confirmAddPreset">Save</button>
                         </div>
                       </div>
                     </div>
@@ -249,7 +326,7 @@
                         </select>
                         <div class="input-group-append">
                           <button class="btn btn-sm auto-btn" type="button"
-                            @click="confirmOverwritePreset">Overwrite</button>
+                            :disabled="isSavingPreset" @click="confirmOverwritePreset">Overwrite</button>
                         </div>
                       </div>
                     </div>
@@ -261,7 +338,7 @@
                         </select>
                         <div class="input-group-append">
                           <button class="btn btn-danger btn-sm" type="button"
-                            @click="confirmDeletePreset">Delete</button>
+                            :disabled="isSavingPreset" @click="confirmDeletePreset">Delete</button>
                         </div>
                       </div>
                     </div>
@@ -676,6 +753,9 @@
                 </div>
               </div>
               <div v-if="showAdvanceOption" class="advanced-options-content">
+                <details class="advanced-block" open>
+                  <summary>Training Multipliers</summary>
+                  <div class="advanced-block-body">
                 <div class="form-group">
                   <div style="color: var(--accent);">Extra Weights For Training</div>
                 </div>
@@ -724,6 +804,11 @@
                     <input type="number" step="1" v-model.number="baseScore[i]" class="form-control">
                   </div>
                 </div>
+                  </div>
+                </details>
+                <details class="advanced-block" open>
+                  <summary>Period Weights</summary>
+                  <div class="advanced-block-body">
                 <hr style="border-color: var(--accent); opacity: 0.5; margin: 12px 0;">
                 <div class="form-group" style="margin-top: 16px;">
                   <div style="color: var(--accent);">Score Value</div>
@@ -867,6 +952,11 @@
                   </div>
                 </div>
                 </div>
+                </div>
+                </details>
+                <details class="advanced-block" open>
+                  <summary>Caps, NPC, and Stat Value</summary>
+                  <div class="advanced-block-body">
                 <hr style="border-color: var(--accent); opacity: 0.5; margin: 12px 0;">
                 <div class="form-group" style="margin-top: 16px;">
                   <div style="color: var(--accent);">NPC Weight</div>
@@ -930,8 +1020,13 @@
                     <input type="number" step="0.1" v-model.number="statValueMultiplier[5]" class="form-control">
                   </div>
                 </div>
+                  </div>
+                </details>
 
-                <div v-if="selectedScenario === 2" class="row mb-2" style="margin-top: 16px; border-top: 1px solid var(--accent); padding-top: 12px;">
+                <details v-if="selectedScenario === 2" class="advanced-block" open>
+                  <summary>Aoharu Scenario Weights</summary>
+                  <div class="advanced-block-body">
+                <div class="row mb-2" style="margin-top: 16px; border-top: 1px solid var(--accent); padding-top: 12px;">
                   <div class="col-12">
                     <label style="color: var(--accent);">Spirit Explosion Score</label>
                     <p style="font-size: 0.9em; margin-bottom: 8px;">Score bonus for spirit explosion training per period</p>
@@ -977,7 +1072,12 @@
                     </div>
                   </div>
                 </div>
+                  </div>
+                </details>
 
+                <details class="advanced-block" open>
+                  <summary>Training Thresholds</summary>
+                  <div class="advanced-block-body">
                 <hr style="border-color: var(--accent); opacity: 0.5; margin: 12px 0;">
                 <div class="form-group" style="margin-top: 16px;">
                   <div style="color: var(--accent);">Training Thresholds</div>
@@ -996,6 +1096,8 @@
                     </div>
                   </div>
                 </div>
+                  </div>
+                </details>
               </div>
 
             </div>
@@ -2054,6 +2156,7 @@ export default {
     return {
       sectionList: [
         { id: 'category-general', label: 'General' },
+        { id: 'category-decision-docs', label: 'Decision Docs' },
         { id: 'category-preset', label: 'Preset & Support' },
         { id: 'category-career', label: 'Career' },
         { id: 'category-race', label: 'Race' },
@@ -2061,6 +2164,12 @@ export default {
         { id: 'category-event', label: 'Events' }
       ],
       activeSection: 'category-general',
+      isEditMode: false,
+      editingTaskId: null,
+      editingTaskStatus: null,
+      isSavingTask: false,
+      isSavingPreset: false,
+      modalHiddenHandler: null,
       manualPurchase: false,
       skipDoubleCircleUnlessHighHint: false,
       overrideInsufficientFansForcedRaces: false,
@@ -2363,15 +2472,17 @@ export default {
       showTurnInfo: false,
           }
   },
-  mounted() {
-        window.addEventListener('dragend', this.onGlobalDragEnd, false);
-    window.addEventListener('drop', this.onGlobalDrop, false);
-  },
-  beforeUnmount() {
-    window.removeEventListener('dragend', this.onGlobalDragEnd, false);
-    window.removeEventListener('drop', this.onGlobalDrop, false);
-  },
   computed: {
+    modalTitle() {
+      return this.isEditMode ? 'Edit Task' : 'Create New Task';
+    },
+    submitLabel() {
+      if (this.isSavingTask) return this.isEditMode ? 'Saving...' : 'Creating...';
+      return this.isEditMode ? 'Save Changes' : 'Confirm';
+    },
+    isEditingRunningTask() {
+      return this.isEditMode && this.normalizeTaskStatus(this.editingTaskStatus) === 2;
+    },
     mantCanRemoveTier() {
       return this.mantTierCount > 1;
     },
@@ -2643,6 +2754,8 @@ export default {
     }
   },
   mounted() {
+    window.addEventListener('dragend', this.onGlobalDragEnd, false);
+    window.addEventListener('drop', this.onGlobalDrop, false);
     this.loadCharacterData()
     this.loadEventList()
     this.loadRaceData()
@@ -2652,10 +2765,25 @@ export default {
     this.getPresets()
     this.loadPalCardStore()
     this.successToast = $('#liveToast').toast({})
+    this.modalHiddenHandler = () => {
+      this.isSavingTask = false;
+      this.isSavingPreset = false;
+      this.showPresetMenu = false;
+      this.resetEditContext();
+    };
+    $('#create-task-list-modal').on('hidden.bs.modal', this.modalHiddenHandler);
     this.$nextTick(() => {
       this.initScrollSpy()
       this.normalizeScoreArrays(3)
     })
+  },
+  beforeUnmount() {
+    window.removeEventListener('dragend', this.onGlobalDragEnd, false);
+    window.removeEventListener('drop', this.onGlobalDrop, false);
+    if (this.modalHiddenHandler) {
+      $('#create-task-list-modal').off('hidden.bs.modal', this.modalHiddenHandler);
+      this.modalHiddenHandler = null;
+    }
   },
   watch: {
     selectedScenario(newVal) {
@@ -2698,6 +2826,58 @@ export default {
       if (dateStr.includes('Late')) h = 1;
       
       return (y * 24) + (m * 2) + h + 1;
+    },
+    normalizeTaskStatus(status) {
+      if (status === null || status === undefined) return null;
+      if (typeof status === 'number') return status;
+      if (typeof status === 'string') {
+        const parsed = Number(status);
+        if (!Number.isNaN(parsed)) return parsed;
+        const byName = {
+          TASK_STATUS_PENDING: 1,
+          TASK_STATUS_RUNNING: 2,
+          TASK_STATUS_INTERRUPT: 3,
+          TASK_STATUS_SUCCESS: 4,
+          TASK_STATUS_FAILED: 5,
+          TASK_STATUS_SCHEDULED: 6,
+          TASK_STATUS_CANCELED: 7
+        };
+        return byName[status] !== undefined ? byName[status] : null;
+      }
+      if (typeof status === 'object') {
+        if (status.value !== undefined) return this.normalizeTaskStatus(status.value);
+        if (status.name !== undefined) return this.normalizeTaskStatus(status.name);
+      }
+      return null;
+    },
+    resetEditContext() {
+      this.isEditMode = false;
+      this.editingTaskId = null;
+      this.editingTaskStatus = null;
+    },
+    taskSaveSuccessMessage(responseData) {
+      if (!this.isEditMode) {
+        return "Task created successfully";
+      }
+      if (responseData && responseData.running_limited) {
+        if (responseData.live_applied) {
+          return "Running task updated and applied live (safe settings)";
+        }
+        return "Running task updated. Safe settings will apply at runtime boundaries.";
+      }
+      return "Task updated successfully";
+    },
+    showToast(message) {
+      const toastBody = document.querySelector('#liveToast .toast-body');
+      if (toastBody) toastBody.textContent = message;
+      if (this.successToast) this.successToast.toast('show');
+    },
+    extractApiError(err, fallbackMessage) {
+      const detail = err?.response?.data?.detail;
+      if (typeof detail === 'string' && detail.trim().length > 0) {
+        return detail;
+      }
+      return fallbackMessage;
     },
     loadPalCardStore() {
       this.axios.get('/api/pal-defaults', null, false)
@@ -2973,6 +3153,7 @@ export default {
       ensureLen(this.scoreValueFinale)
     },
     togglePresetMenu() {
+      if (this.isSavingPreset) return;
       this.showPresetMenu = !this.showPresetMenu;
     },
     selectPresetAction(which) {
@@ -3358,6 +3539,7 @@ export default {
       }
     },
     cancelTask: function () {
+      if (this.isSavingTask) return;
       $('#create-task-list-modal').modal('hide');
     },
     addRule() {
@@ -3381,6 +3563,13 @@ export default {
       }
     },
     addTask: function () {
+      if (this.isSavingTask) {
+        return;
+      }
+      if (this.isEditMode && !this.editingTaskId) {
+        this.showToast("Unable to save: missing task id.");
+        return;
+      }
       // Convert new skill system to bot-expected format
       var learn_skill_list = []
 
@@ -3406,7 +3595,6 @@ export default {
       // Convert blacklisted skills to bot-expected format
       var learn_skill_blacklist = [...this.blacklistedSkills];
 
-      console.log(learn_skill_list)
       var ura_reset_skill_event_weight_list = this.resetSkillEventWeightList ? this.resetSkillEventWeightList.split(",").map(item => item.trim()) : []
       let payload = {
         app_name: "umamusume",
@@ -3492,7 +3680,6 @@ export default {
           cron: this.cron
         }
       }
-      console.log('POST /task', payload)
       payload.attachment_data = payload.attachment_data || {};
       payload.attachment_data.event_choices = this.buildEventChoices();
       
@@ -3548,13 +3735,20 @@ export default {
       payload.attachment_data.friendship_green_discount = this.friendshipGreenDiscount;
       payload.attachment_data.stat_cap_penalties = this.statCapPenalties.map(p => [...p]);
       payload.attachment_data.scoring_version = 2;
+      const requestPayload = this.isEditMode ? { ...payload, task_id: this.editingTaskId } : payload;
+      const request = this.isEditMode
+        ? this.axios.put("/task", requestPayload)
+        : this.axios.post("/task", requestPayload);
 
-      this.axios.post("/task", payload).then(
-        () => {
-          $('#create-task-list-modal').modal('hide');
-        }
-      ).catch(e => {
+      this.isSavingTask = true;
+      request.then((res) => {
+        this.showToast(this.taskSaveSuccessMessage((res && res.data) ? res.data : {}));
+        $('#create-task-list-modal').modal('hide');
+      }).catch(e => {
+        this.showToast(this.extractApiError(e, this.isEditMode ? "Failed to update task" : "Failed to create task"));
         console.error(e)
+      }).finally(() => {
+        this.isSavingTask = false;
       })
     },
     applyPresetRace: function () {
@@ -3912,8 +4106,24 @@ export default {
       $('#create-task-list-modal').modal('hide');
     },
     loadFromTask: function (task) {
+      this.isEditMode = true;
+      this.editingTaskId = task.task_id || null;
+      this.editingTaskStatus = task.task_status;
+      this.isSavingTask = false;
+      this.activeSection = 'category-general';
       const data = task.attachment_data || task.detail || {};
-      this.selectedExecuteMode = task.task_execute_mode || 3;
+      const modeMap = {
+        TASK_EXECUTE_MODE_ONE_TIME: 1,
+        TASK_EXECUTE_MODE_CRON_JOB: 2,
+        TASK_EXECUTE_MODE_LOOP: 3,
+        TASK_EXECUTE_MODE_TEAM_TRIALS: 4,
+        TASK_EXECUTE_MODE_FULL_AUTO: 5
+      };
+      if (typeof task.task_execute_mode === 'string') {
+        this.selectedExecuteMode = modeMap[task.task_execute_mode] || 3;
+      } else {
+        this.selectedExecuteMode = Number(task.task_execute_mode || 3);
+      }
       this.selectedScenario = data.scenario || 1;
       this.cureAsapConditions = data.cure_asap_conditions || this.cureAsapConditions;
       if (data.expect_attribute && data.expect_attribute.length >= 5) {
@@ -3991,7 +4201,7 @@ export default {
         this.scoreValueSeniorAfterSummer = [...data.score_value[3]];
         this.scoreValueFinale = [...data.score_value[4]];
 
-        // Extract special training values if present (last element beyond base 3 or 4)
+        // Extract special training values if present (last element beyond base 3)
         if (this.selectedScenario === 2) {
           const extractSpecial = (arr) => {
             if (arr.length > 3) { const s = arr[arr.length - 1]; return { arr: arr.slice(0, arr.length - 1), special: s } }
@@ -4004,18 +4214,6 @@ export default {
           r = extractSpecial(this.scoreValueSeniorAfterSummer); this.scoreValueSeniorAfterSummer = r.arr; if (r.special !== undefined) this.specialSeniorAfterSummer = r.special;
           r = extractSpecial(this.scoreValueFinale); this.scoreValueFinale = r.arr; if (r.special !== undefined) this.specialFinale = r.special;
         }
-
-        // Migrate v1 (4-element) arrays: [lv1, lv2, energy, hint] → [lv1*100, energy*100, hint*100]
-        const migrateScoreArr = (arr) => {
-          if (arr.length === 4) return [Math.round(arr[0] * 100), Math.round(arr[2] * 100), Math.round(arr[3] * 100)]
-          if (arr.length === 3 && arr.every(v => Math.abs(v) < 1)) return arr.map(v => Math.round(v * 100))
-          return arr
-        }
-        this.scoreValueJunior = migrateScoreArr(this.scoreValueJunior);
-        this.scoreValueClassic = migrateScoreArr(this.scoreValueClassic);
-        this.scoreValueSenior = migrateScoreArr(this.scoreValueSenior);
-        this.scoreValueSeniorAfterSummer = migrateScoreArr(this.scoreValueSeniorAfterSummer);
-        this.scoreValueFinale = migrateScoreArr(this.scoreValueFinale);
 
         // Normalize to 3 elements
         [this.scoreValueJunior, this.scoreValueClassic, this.scoreValueSenior, this.scoreValueSeniorAfterSummer, this.scoreValueFinale].forEach(arr => {
@@ -4093,16 +4291,26 @@ export default {
         this.mantMegaLargeThreshold = data.mant_config.mega_large_threshold ?? 80;
         this.mantTrainingWeightsThreshold = data.mant_config.training_weights_threshold ?? 60;
       }
+      this.$nextTick(() => {
+        this.normalizeScoreArrays(3);
+        const root = this.$refs.scrollPane;
+        if (root) root.scrollTop = 0;
+        if (this.onScrollSpy) this.onScrollSpy();
+      });
     },
     getPresets: function () {
       return this.axios.post("/umamusume/get-presets", "").then(
         res => {
           // All presets now come from the server (including starter presets)
-          this.cultivatePresets = res.data
+          this.cultivatePresets = Array.isArray(res.data) ? res.data : []
         }
-      )
+      ).catch(() => {
+        this.cultivatePresets = []
+      })
     },
-    addPresets: function () {
+    addPresets: function (successMessage = 'Preset saved successfully') {
+      if (this.isSavingPreset) return Promise.resolve();
+      this.isSavingPreset = true;
       // Convert new skill system to old format for backward compatibility
       var skill_priority_list = [];
       var skill_blacklist = this.blacklistedSkills.join(", ");
@@ -4266,24 +4474,29 @@ export default {
       let payload = {
         "preset": JSON.stringify(preset)
       }
-      console.log(JSON.stringify(payload))
       const savedName = this.presetNameEdit
-      this.axios.post("/umamusume/add-presets", JSON.stringify(payload)).then(
+      return this.axios.post("/umamusume/add-presets", JSON.stringify(payload)).then(
         () => {
-          this.successToast.toast('show')
-          this.getPresets().then(() => {
+          return this.getPresets().then(() => {
             const saved = this.cultivatePresets.find(p => p.name === savedName)
             if (saved) {
               this.presetsUse = saved
             }
+            this.showToast(successMessage);
           })
         }
-      )
+      ).catch(e => {
+        this.showToast(this.extractApiError(e, 'Failed to save preset'));
+        throw e;
+      }).finally(() => {
+        this.isSavingPreset = false;
+      })
     },
     togglePresetAction: function (which) {
       this.presetAction = this.presetAction === which ? null : which;
     },
     confirmAddPreset() {
+      if (this.isSavingPreset) return;
       if (!this.presetNameEdit || this.presetNameEdit.trim() === "") return;
       if (this.presetNameEdit.trim() === 'Default') {
         window.alert('"Default" is reserved. Please choose another name.');
@@ -4293,32 +4506,36 @@ export default {
       if (exists && !window.confirm(`Preset "${this.presetNameEdit}" exists. Overwrite?`)) {
         return;
       }
-      const toastBody = document.querySelector('#liveToast .toast-body');
-      if (toastBody) toastBody.textContent = 'Preset saved successfully';
-      this.addPresets();
-      this.presetAction = null;
-      this.presetNameEdit = "";
+      this.addPresets('Preset saved successfully').then(() => {
+        this.presetAction = null;
+        this.presetNameEdit = "";
+      }).catch(() => {});
     },
     confirmOverwritePreset() {
+      if (this.isSavingPreset) return;
       if (!this.overwritePresetName) return;
       // For overwrite we simply save with the same name
       this.presetNameEdit = this.overwritePresetName;
-      const toastBody = document.querySelector('#liveToast .toast-body');
-      if (toastBody) toastBody.textContent = 'Preset overwritten successfully';
-      this.addPresets();
-      this.presetAction = null;
+      this.addPresets('Preset overwritten successfully').then(() => {
+        this.presetAction = null;
+      }).catch(() => {});
     },
     confirmDeletePreset() {
+      if (this.isSavingPreset) return;
       if (!this.deletePresetName) return;
       if (!window.confirm(`Delete preset \"${this.deletePresetName}\"?`)) return;
       const payload = { name: this.deletePresetName };
+      this.isSavingPreset = true;
       this.axios.post("/umamusume/delete-preset", JSON.stringify(payload)).then(() => {
-        this.getPresets();
+        return this.getPresets();
+      }).then(() => {
         this.presetAction = null;
         this.deletePresetName = "";
-        const toastBody = document.querySelector('#liveToast .toast-body');
-        if (toastBody) toastBody.textContent = 'Preset deleted successfully';
-        this.successToast.toast('show')
+        this.showToast('Preset deleted successfully');
+      }).catch(e => {
+        this.showToast(this.extractApiError(e, 'Failed to delete preset'));
+      }).finally(() => {
+        this.isSavingPreset = false;
       });
     },
     exportPreset() {
@@ -4536,16 +4753,13 @@ export default {
       this.onScrollSpy();
     },
     destroyScrollSpy() {
-      const root = this.$refs.contentPane;
+      const root = this.$refs.scrollPane;
       if (root && this.onScrollSpy) root.removeEventListener('scroll', this.onScrollSpy);
       if (this.onScrollSpy) window.removeEventListener('resize', this.onScrollSpy);
     }
   },
   unmounted() {
     this.destroyScrollSpy();
-  },
-  watch: {
-
   }
 }
 </script>
@@ -5546,6 +5760,72 @@ export default {
 .advanced-options-content {
   margin-top: 15px;
   animation: fadeIn 0.3s ease;
+}
+
+.advanced-block {
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: color-mix(in srgb, var(--surface-2) 85%, transparent);
+}
+
+.advanced-block summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  padding: 10px 12px;
+  color: var(--accent);
+}
+
+.advanced-block summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-block summary::after {
+  content: '▾';
+  float: right;
+  transition: transform 0.2s ease;
+}
+
+.advanced-block[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.advanced-block-body {
+  padding: 0 12px 12px 12px;
+}
+
+.decision-docs {
+  display: grid;
+  gap: 10px;
+}
+
+.decision-docs-lead {
+  margin: 0;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.decision-formula {
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 90%, transparent);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.decision-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.decision-note {
+  margin: 8px 0 0 0;
+  color: var(--muted);
 }
 
 .race-options-header {

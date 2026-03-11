@@ -40,6 +40,51 @@ def weights_for_date_v2(ctx, date):
     npc_w = float(npc_weights[period_idx]) if period_idx < len(npc_weights) else 0.0
     return w_friendship, w_friendship_green, npc_w
 
+
+def compute_basic_training_scores(ctx, turn_info):
+    """Compute base training desirability from friendship/NPC/failure only."""
+    from module.umamusume.define import SupportCardType, SupportCardFavorLevel
+    date = int(getattr(turn_info, "date", 1))
+    w_friendship, w_friendship_green, npc_w = weights_for_date_v2(ctx, date)
+    training_info_list = getattr(turn_info, "training_info_list", []) or []
+    training_score = [0.0, 0.0, 0.0, 0.0, 0.0]
+
+    for idx in range(5):
+        if idx >= len(training_info_list):
+            continue
+        til = training_info_list[idx]
+        score = 0.0
+        for sc in (getattr(til, "support_card_info_list", []) or []):
+            favor = getattr(sc, "favor", SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN)
+            ctype = getattr(sc, "card_type", SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN)
+            if ctype == SupportCardType.SUPPORT_CARD_TYPE_NPC:
+                score += npc_w
+                continue
+            if ctype == SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN:
+                continue
+            if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN:
+                continue
+            if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_1:
+                score += w_friendship
+            elif favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_2:
+                score += w_friendship_green
+        training_score[idx] = score
+
+    if getattr(ctx.cultivate_detail, "compensate_failure", True):
+        try:
+            divisor = float(getattr(ctx.cultivate_detail, "failure_rate_divisor", 50.0))
+            for idx in range(5):
+                if idx >= len(training_info_list):
+                    continue
+                fr = int(getattr(training_info_list[idx], "failure_rate", -1))
+                if fr >= 0:
+                    mult = max(0.0, 1.0 - (float(fr) / divisor))
+                    training_score[idx] *= mult
+        except Exception:
+            pass
+    return training_score
+
+
 def get_ura_race_id_and_template(date):
     for rng, rid, tpl in URA_RACE_WINDOWS:
         if rng[0] <= date <= rng[1]:
@@ -152,48 +197,8 @@ def get_operation(ctx: UmamusumeContext) -> TurnOperation | None:
     except Exception:
         support_card_max = 0
 
-    from module.umamusume.define import SupportCardType, SupportCardFavorLevel, TrainingType
-    type_map = [
-        SupportCardType.SUPPORT_CARD_TYPE_SPEED,
-        SupportCardType.SUPPORT_CARD_TYPE_STAMINA,
-        SupportCardType.SUPPORT_CARD_TYPE_POWER,
-        SupportCardType.SUPPORT_CARD_TYPE_WILL,
-        SupportCardType.SUPPORT_CARD_TYPE_INTELLIGENCE,
-    ]
-
-    w_friendship, w_friendship_green, npc_w = weights_for_date_v2(ctx, date)
-
-    training_score = [0.0, 0.0, 0.0, 0.0, 0.0]
-    for idx in range(5):
-        til = turn_info.training_info_list[idx]
-        target_type = type_map[idx]
-        score = 0.0
-        for sc in (getattr(til, "support_card_info_list", []) or []):
-            favor = getattr(sc, "favor", SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN)
-            ctype = getattr(sc, "card_type", SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN)
-            if ctype == SupportCardType.SUPPORT_CARD_TYPE_NPC:
-                score += npc_w
-                continue
-            if ctype == SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN:
-                continue
-            if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN:
-                continue
-            if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_1:
-                score += w_friendship
-            elif favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_2:
-                score += w_friendship_green
-        training_score[idx] = score
-
-    if getattr(ctx.cultivate_detail, 'compensate_failure', True):
-        try:
-            divisor = float(getattr(ctx.cultivate_detail, 'failure_rate_divisor', 50.0))
-            for idx in range(5):
-                fr = int(getattr(turn_info.training_info_list[idx], 'failure_rate', -1))
-                if fr >= 0:
-                    mult = max(0.0, 1.0 - (float(fr) / divisor))
-                    training_score[idx] *= mult
-        except Exception:
-            pass
+    from module.umamusume.define import TrainingType
+    training_score = compute_basic_training_scores(ctx, turn_info)
 
     log.debug("Overall training score: " + str(training_score))
 

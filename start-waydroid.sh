@@ -78,4 +78,4 @@ adb -s "$DEVICE" shell "pm disable-user --user 0 com.google.android.setupwizard"
 adb -s "$DEVICE" shell "pm disable-user --user 0 com.google.android.partnersetup" 2>/dev/null
 
 echo ""
-echo "Ready. Run the bot with: cd ~/Games/umamusume-sweepy && python3.12 main.py"
+echo "Ready. Run the bot with: cd ~/Games/umamusume-sweepy && python3 main.py"

@@ -2,6 +2,7 @@ from typing import Dict
 import json
 import os
 
+from fastapi import HTTPException
 from bot.base.manifest import AppManifest
 from bot.base.resource import NOT_FOUND_UI
 from bot.server.handler import server
@@ -110,14 +111,19 @@ def get_presets():
 
 @server.post("/umamusume/add-presets")
 def add_preset(req: AddPresetRequest):
-    write_preset(req.preset)
-    return
+    try:
+        write_preset(req.preset)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"ok": True}
 
 
 @server.post("/umamusume/delete-preset")
 def delete_preset(req: DeletePresetRequest):
-    delete_preset_by_name(req.name)
-    return
+    ok = delete_preset_by_name(req.name)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Preset not found or cannot be deleted")
+    return {"ok": True}
 
 
 @server.get("/umamusume/events")

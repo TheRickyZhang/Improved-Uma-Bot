@@ -19,7 +19,13 @@ def add_task(app_name, task_execute_mode, task_type, task_desc, cron_job_config,
 
 
 def delete_task(task_id):
-    scheduler.delete_task(task_id)
+    return scheduler.delete_task(task_id)
+
+
+def update_task(task_id, app_name, task_execute_mode, task_type, task_desc, cron_job_config, attachment_data):
+    app_config = APP_MANIFEST_LIST[app_name]
+    new_task = app_config.build_task(task_execute_mode, task_type, task_desc, cron_job_config, attachment_data)
+    return scheduler.update_task(task_id, new_task)
 
 
 def get_task_list():

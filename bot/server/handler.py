@@ -5,7 +5,7 @@ import re
 from typing import Dict, Any
 import subprocess
 
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from bot.base.log import task_log_handler
@@ -31,6 +31,16 @@ class DeleteTaskRequest(BaseModel):
 
 class ResetTaskRequest(BaseModel):
     task_id: str
+
+
+class UpdateTaskRequest(BaseModel):
+    task_id: str
+    app_name: str
+    task_execute_mode: TaskExecuteMode
+    task_type: int
+    task_desc: str
+    attachment_data: object
+    cron_job_config: Union[object, None] = None
 
 
 class SafeJSONResponse(JSONResponse):
@@ -74,6 +84,19 @@ manual_skill_notification_state = {
     "confirmed": False,
     "cancelled": False
 }
+
+
+def _persist_scheduler_tasks_or_raise():
+    from bot.base.purge import save_scheduler_tasks
+    for _ in range(2):
+        if save_scheduler_tasks():
+            return
+        time.sleep(0.05)
+    raise HTTPException(
+        status_code=500,
+        detail="Task change applied in memory but failed to persist to userdata/saved_tasks.json"
+    )
+
 
 @server.post("/api/manual-skill-notification")
 def manual_skill_notification(notification_data: Dict[str, Any]):
@@ -121,11 +144,38 @@ def cancel_manual_skill_notification():
 def add_task(req: AddTaskRequest):
     bot_ctrl.add_task(req.app_name, req.task_execute_mode, req.task_type, req.task_desc,
                       req.cron_job_config, req.attachment_data)
+    _persist_scheduler_tasks_or_raise()
+    return {"ok": True}
 
 
 @server.delete("/task")
 def delete_task(req: DeleteTaskRequest = Body(...)):
-    bot_ctrl.delete_task(req.task_id)
+    deleted = bot_ctrl.delete_task(req.task_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Task not found")
+    _persist_scheduler_tasks_or_raise()
+    return {"ok": True}
+
+
+@server.put("/task")
+def update_task(req: UpdateTaskRequest):
+    result = bot_ctrl.update_task(
+        req.task_id,
+        req.app_name,
+        req.task_execute_mode,
+        req.task_type,
+        req.task_desc,
+        req.cron_job_config,
+        req.attachment_data
+    )
+    if not result or not result.get("updated"):
+        raise HTTPException(status_code=404, detail="Task not found")
+    _persist_scheduler_tasks_or_raise()
+    return {
+        "ok": True,
+        "live_applied": bool(result.get("live_applied", False)),
+        "running_limited": bool(result.get("running_limited", False))
+    }
 
 
 @server.get("/task")

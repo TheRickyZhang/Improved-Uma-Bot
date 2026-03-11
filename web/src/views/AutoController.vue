@@ -102,6 +102,25 @@
 <script>
 import SchedulerPanel from "../components/SchedulerPanel.vue";
 import LogPanel from "../components/base/LogPanel.vue";
+
+const TASK_MODE_NAME_TO_VALUE = {
+  TASK_EXECUTE_MODE_ONE_TIME: 1,
+  TASK_EXECUTE_MODE_CRON_JOB: 2,
+  TASK_EXECUTE_MODE_LOOP: 3,
+  TASK_EXECUTE_MODE_TEAM_TRIALS: 4,
+  TASK_EXECUTE_MODE_FULL_AUTO: 5
+};
+
+const TASK_STATUS_NAME_TO_VALUE = {
+  TASK_STATUS_PENDING: 1,
+  TASK_STATUS_RUNNING: 2,
+  TASK_STATUS_INTERRUPT: 3,
+  TASK_STATUS_SUCCESS: 4,
+  TASK_STATUS_FAILED: 5,
+  TASK_STATUS_SCHEDULED: 6,
+  TASK_STATUS_CANCELED: 7
+};
+
 export default {
   name: "AutoController",
   components: { LogPanel, SchedulerPanel },
@@ -128,7 +147,11 @@ export default {
     successRate(){
       const total = this.historyTaskList.length
       if (!total) return '—'
-      const success = this.historyTaskList.filter(t => t && (t.task_status === 5 || t.status === 5 || t.task_result === 'success')).length
+      const success = this.historyTaskList.filter(t => {
+        if (!t) return false;
+        const status = this.normalizeEnumValue(t.task_status ?? t.status, TASK_STATUS_NAME_TO_VALUE);
+        return status === 4 || status === 5 || t.task_result === 'success';
+      }).length
       return Math.round((success/total)*100) + '%'
     }
   },
@@ -144,6 +167,30 @@ export default {
     this.pollDetectedPortraits()
   },
   methods:{
+    normalizeEnumValue(rawValue, nameMap) {
+      if (rawValue === null || rawValue === undefined) return null;
+      if (typeof rawValue === 'number') return rawValue;
+      if (typeof rawValue === 'string') {
+        const parsed = Number(rawValue);
+        if (!Number.isNaN(parsed)) return parsed;
+        return Object.prototype.hasOwnProperty.call(nameMap, rawValue) ? nameMap[rawValue] : null;
+      }
+      if (typeof rawValue === 'object') {
+        if (Object.prototype.hasOwnProperty.call(rawValue, 'value')) {
+          return this.normalizeEnumValue(rawValue.value, nameMap);
+        }
+        if (Object.prototype.hasOwnProperty.call(rawValue, 'name')) {
+          return this.normalizeEnumValue(rawValue.name, nameMap);
+        }
+      }
+      return null;
+    },
+    taskModeValue(task) {
+      return this.normalizeEnumValue(task && task.task_execute_mode, TASK_MODE_NAME_TO_VALUE);
+    },
+    taskStatusValue(task) {
+      return this.normalizeEnumValue(task && task.task_status, TASK_STATUS_NAME_TO_VALUE);
+    },
     scrollToLogs(){
       const el = document.getElementById('scroll_text');
       if (el) el.focus();
@@ -156,9 +203,9 @@ export default {
         let cronJobList = []
         let runningTask = undefined
         this.taskList.forEach(t=>{
-          const mode = t['task_execute_mode']
-          const status = t['task_status']
-          if (mode === 2 || mode === 'TASK_EXECUTE_MODE_CRON_JOB') {
+          const mode = this.taskModeValue(t)
+          const status = this.taskStatusValue(t)
+          if (mode === 2) {
             if (status === 6 || status === 7) { cronJobList.push(t) }
           } else {
             if (status === 2) { runningTask = t }

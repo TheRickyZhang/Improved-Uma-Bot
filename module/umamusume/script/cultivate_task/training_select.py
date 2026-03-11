@@ -56,6 +56,259 @@ TYPE_MAP = [
 ]
 
 
+def compute_full_training_scores(ctx: UmamusumeContext, date: int, extra_weight, current_energy=None):
+    sv = getattr(ctx.cultivate_detail, 'score_value', DEFAULT_SCORE_VALUE)
+
+    def resolve_weights(sv_list, idx):
+        try:
+            arr = sv_list[idx]
+        except Exception:
+            arr = [11, 0.6, 9]
+        if not isinstance(arr, (list, tuple)):
+            arr = [11, 0.6, 9]
+        base = list(arr[:3])
+        if len(base) < 3:
+            base += [0] * (3 - len(base))
+        return base
+
+    period_idx = get_date_period_index(date)
+    w_friendship, w_energy_change, w_hint = resolve_weights(sv, period_idx)
+    green_discount = float(getattr(ctx.cultivate_detail, 'friendship_green_discount', 10)) / 100.0
+    w_friendship_green = w_friendship * (1.0 - green_discount)
+
+    stat_mult = getattr(ctx.cultivate_detail, 'stat_value_multiplier', DEFAULT_STAT_VALUE_MULTIPLIER)
+    if not isinstance(stat_mult, (list, tuple)) or len(stat_mult) < 6:
+        stat_mult = DEFAULT_STAT_VALUE_MULTIPLIER
+
+    npc_weights = getattr(ctx.cultivate_detail, 'npc_weight', [5, 5, 5, 3, 0])
+    npc_w = npc_weights[period_idx] if period_idx < len(npc_weights) else 0
+
+    base_scores = getattr(ctx.cultivate_detail, 'base_score', DEFAULT_BASE_SCORES)
+
+    fsg_lookup = {}
+    for g in getattr(ctx.cultivate_detail, 'friendship_score_groups', []):
+        if isinstance(g, dict) and g.get('characters'):
+            mult = g.get('multiplier', 100) / 100.0
+            for cname in g['characters']:
+                fsg_lookup[cname] = mult
+
+    stat_cap_penalties = getattr(ctx.cultivate_detail, 'stat_cap_penalties', [
+        [95, 0], [90, 70], [80, 80], [70, 90]
+    ])
+
+    computed_scores = [0.0, 0.0, 0.0, 0.0, 0.0]
+    for idx in range(5):
+        til = ctx.cultivate_detail.turn_info.training_info_list[idx]
+        target_type = TYPE_MAP[idx]
+        friend_count = 0
+        friend_total = 0.0
+        npc_count = 0
+        npc_total = 0.0
+        pal_count = 0
+        score = base_scores[idx] if isinstance(base_scores, (list, tuple)) and len(base_scores) > idx else 0.0
+        detected_chars = getattr(til, 'detected_characters', [])
+        slot_name_map = {}
+        for slot_idx, cname, cscore in detected_chars:
+            if cname is not None:
+                slot_name_map[slot_idx] = cname
+        sc_list = getattr(til, "support_card_info_list", []) or []
+        for sc_idx, sc in enumerate(sc_list):
+            favor = getattr(sc, "favor", SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN)
+            ctype = getattr(sc, "card_type", SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN)
+            if ctype == SupportCardType.SUPPORT_CARD_TYPE_NPC:
+                npc_count += 1
+                npc_total += npc_w
+                score += npc_w
+                continue
+            if ctype == SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN:
+                continue
+            if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN:
+                continue
+
+            if ctype == SupportCardType.SUPPORT_CARD_TYPE_FRIEND:
+                pal_count += 1
+                pal_scores = ctx.cultivate_detail.pal_friendship_score
+                if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_1:
+                    score += pal_scores[0]
+                elif favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_2:
+                    score += pal_scores[1]
+                elif favor in (SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_3, SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_4):
+                    score += pal_scores[2]
+                continue
+
+            char_name = slot_name_map.get(sc_idx)
+            fsg_mult = fsg_lookup.get(char_name, 1.0) if char_name else 1.0
+            is_green = favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_2
+            w = w_friendship_green if is_green else w_friendship
+            friend_add = w * fsg_mult
+            friend_count += 1
+            friend_total += friend_add
+            score += friend_add
+
+        stat_results = getattr(til, 'stat_results', {})
+        stat_score = 0.0
+        stat_parts = []
+        for sk_idx, sk in enumerate(STAT_KEY_LIST):
+            sv_val = stat_results.get(sk, 0)
+            if sv_val > 0:
+                contrib = sv_val * stat_mult[sk_idx]
+                stat_score += contrib
+                stat_parts.append(f"{sk}:{sv_val}")
+
+        score += stat_score
+        try:
+            fr = int(getattr(til, 'failure_rate', -1))
+        except Exception:
+            fr = -1
+        hint_bonus = 0.0
+        hint_count = 0
+        try:
+            boost_chars = getattr(ctx.cultivate_detail, 'hint_boost_characters', [])
+            boost_mult = getattr(ctx.cultivate_detail, 'hint_boost_multiplier', 100) / 100.0
+            char_list_hint = getattr(til, 'detected_characters', [])
+            has_any_hint = False
+            hint_total = 0.0
+            for cname, cscore, c_has_hint in char_list_hint:
+                if c_has_hint:
+                    has_any_hint = True
+                    if cname in boost_chars:
+                        hint_total += w_hint * boost_mult
+                    else:
+                        hint_total += w_hint
+                    hint_count += 1
+            if hint_count > 0:
+                hint_bonus = hint_total / hint_count
+            elif not has_any_hint and bool(getattr(til, 'has_hint', False)):
+                hint_bonus = w_hint
+                hint_count = 1
+        except Exception:
+            hint_bonus = w_hint if bool(getattr(til, 'has_hint', False)) else 0.0
+        score += hint_bonus
+        energy_change_val = getattr(til, 'energy_change', 0.0)
+        energy_change_contrib = energy_change_val * w_energy_change
+        score += energy_change_contrib
+        scenario_additive = 0.0
+        scenario_multiplier = 1.0
+        scenario_formula_parts = []
+        scenario_mult_parts = []
+        try:
+            scenario = ctx.cultivate_detail.scenario
+            if scenario is not None:
+                scenario_additive, scenario_multiplier, scenario_formula_parts, scenario_mult_parts = scenario.compute_scenario_bonuses(
+                    ctx, idx, getattr(til, "support_card_info_list", []), date, period_idx, current_energy)
+        except Exception:
+            pass
+        score += scenario_additive
+
+        pal_mult = 1.0
+        if pal_count > 0:
+            pal_pct = max(0.0, min(100.0, ctx.cultivate_detail.pal_card_multiplier))
+            pal_mult = 1.0 + pal_pct / 100.0
+            score *= pal_mult
+
+        fail_mult = 1.0
+        try:
+            if getattr(ctx.cultivate_detail, 'compensate_failure', True):
+                fr_val = int(getattr(til, 'failure_rate', -1))
+                if fr_val >= 0:
+                    divisor = float(getattr(ctx.cultivate_detail, 'failure_rate_divisor', 50.0))
+                    fail_mult = max(0.0, 1.0 - (float(fr_val) / divisor))
+                    score *= fail_mult
+        except Exception:
+            pass
+
+        if scenario_multiplier != 1.0:
+            score *= scenario_multiplier
+
+        target_mult = 1.0
+        try:
+            expect_attr = ctx.cultivate_detail.expect_attribute
+            if isinstance(expect_attr, list) and len(expect_attr) == 5:
+                uma = ctx.cultivate_detail.turn_info.uma_attribute
+                curr_vals = [uma.speed, uma.stamina, uma.power, uma.will, uma.intelligence]
+                cap_val = float(expect_attr[idx])
+                curr_val = float(curr_vals[idx])
+                if cap_val > 0 and cap_val < 9999:
+                    ratio_pct = (curr_val / cap_val) * 100
+                    for threshold, mult_pct in sorted(stat_cap_penalties, key=lambda x: -x[0]):
+                        if ratio_pct >= threshold:
+                            target_mult = mult_pct / 100.0
+                            break
+                    score *= target_mult
+        except Exception:
+            pass
+
+        weight_mult = 1.0
+        try:
+            ew = extra_weight[idx] if isinstance(extra_weight, (list, tuple)) and len(extra_weight) == 5 else 0.0
+        except Exception:
+            ew = 0.0
+        if ew > -1.0:
+            weight_mult = 1.0 + float(ew)
+            weight_mult = max(0.0, min(2.0, weight_mult))
+            score *= weight_mult
+
+        computed_scores[idx] = score
+
+        base_val = base_scores[idx] if isinstance(base_scores, (list, tuple)) and len(base_scores) > idx else 0.0
+        parts = []
+        if base_val != 0:
+            parts.append(f"base:{base_val:.1f}")
+        if stat_score > 0:
+            parts.append(f"stats:+{stat_score:.1f}")
+        if friend_total > 0:
+            parts.append(f"friend({friend_count}):+{friend_total:.1f}")
+        if energy_change_contrib != 0:
+            parts.append(f"nrg({energy_change_val:+.0f}):{energy_change_contrib:+.1f}")
+        if npc_total > 0:
+            parts.append(f"npc({npc_count}):+{npc_total:.1f}")
+        if hint_bonus > 0:
+            parts.append(f"hint({hint_count}):+{hint_bonus:.1f}")
+        parts.extend(scenario_formula_parts)
+
+        mult_strs = []
+        if pal_mult != 1.0:
+            mult_strs.append(f"pal:x{pal_mult:.2f}")
+        if fail_mult != 1.0:
+            mult_strs.append(f"fail:x{fail_mult:.2f}")
+        mult_strs.extend(scenario_mult_parts)
+        if target_mult != 1.0:
+            mult_strs.append(f"cap:x{target_mult:.2f}")
+        if weight_mult != 1.0:
+            mult_strs.append(f"wt:x{weight_mult:.2f}")
+
+        formula_str = " ".join(parts)
+        if mult_strs:
+            formula_str += " | " + " ".join(mult_strs)
+
+        stat_str = " | " + " ".join(stat_parts) if stat_parts else ""
+        nrg_change = getattr(til, 'energy_change', 0.0)
+        nrg_str = f" | nrg:{nrg_change:+.0f}" if nrg_change != 0 else ""
+        log.info(f"{TRAINING_NAMES[idx]}: {score:.1f} = [{formula_str}]{stat_str}{nrg_str}")
+
+    return computed_scores
+
+
+def choose_training_index(computed_scores, blocked_trainings, date, summer_score_threshold):
+    blocked_count = sum(blocked_trainings)
+    available_trainings = [i for i, blocked in enumerate(blocked_trainings) if not blocked]
+    if blocked_count == 4 and len(available_trainings) == 1:
+        return available_trainings[0]
+
+    eps = 1e-9
+    max_score = max(computed_scores) if len(computed_scores) == 5 else 0.0
+    if date in (35, 36, 59, 60):
+        best_idx_tmp = int(np.argmax(computed_scores))
+        best_score_tmp = computed_scores[best_idx_tmp]
+        if best_score_tmp < summer_score_threshold:
+            return best_idx_tmp
+        ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
+        return min(ties) if len(ties) > 0 else best_idx_tmp
+
+    ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
+    return min(ties) if len(ties) > 0 else int(np.argmax(computed_scores))
+
+
 def script_cultivate_training_select(ctx: UmamusumeContext):
     if ctx.cultivate_detail.turn_info is None:
         log.warning("Turn information not initialized")
@@ -91,7 +344,7 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
             ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
             return
 
-    limit = int(getattr(ctx.cultivate_detail, 'rest_threshold', getattr(ctx.cultivate_detail, 'rest_treshold', getattr(ctx.cultivate_detail, 'fast_path_energy_limit', DEFAULT_REST_THRESHOLD))))
+    limit = int(getattr(ctx.cultivate_detail, 'rest_threshold', DEFAULT_REST_THRESHOLD))
     if limit == 0:
         energy = 100
     else:
@@ -341,35 +594,6 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
             ctx.cultivate_detail.turn_info.training_info_list[idx].energy_change = energy_val
 
         date = ctx.cultivate_detail.turn_info.date
-        sv = getattr(ctx.cultivate_detail, 'score_value', DEFAULT_SCORE_VALUE)
-        def resolve_weights(sv_list, idx):
-            try:
-                arr = sv_list[idx]
-            except Exception:
-                arr = [11, 0.6, 9]
-            if not isinstance(arr, (list, tuple)):
-                arr = [11, 0.6, 9]
-            base = list(arr[:3])
-            if len(base) < 3:
-                base += [0] * (3 - len(base))
-            return base
-        period_idx = get_date_period_index(date)
-        w_friendship, w_energy_change, w_hint = resolve_weights(sv, period_idx)
-        green_discount = float(getattr(ctx.cultivate_detail, 'friendship_green_discount', 10)) / 100.0
-        w_friendship_green = w_friendship * (1.0 - green_discount)
-
-        type_map = TYPE_MAP
-        names = TRAINING_NAMES
-        stat_keys = STAT_KEY_LIST
-        computed_scores = [0.0, 0.0, 0.0, 0.0, 0.0]
-
-        stat_mult = getattr(ctx.cultivate_detail, 'stat_value_multiplier', DEFAULT_STAT_VALUE_MULTIPLIER)
-        if not isinstance(stat_mult, (list, tuple)) or len(stat_mult) < 6:
-            stat_mult = DEFAULT_STAT_VALUE_MULTIPLIER
-
-        # NPC weight: flat value per period
-        npc_weights = getattr(ctx.cultivate_detail, 'npc_weight', [5, 5, 5, 3, 0])
-        npc_w = npc_weights[period_idx] if period_idx < len(npc_weights) else 0
 
         try:
             current_energy = int(getattr(ctx.cultivate_detail.turn_info, 'cached_energy', 0))
@@ -379,224 +603,11 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
                 ctx.cultivate_detail.turn_info.cached_energy = current_energy
         except Exception:
             current_energy = None
-        try:
-            rest_threshold = int(getattr(ctx.cultivate_detail, 'rest_threshold', DEFAULT_REST_THRESHOLD))
-        except Exception:
-            rest_threshold = DEFAULT_REST_THRESHOLD
-
-        base_scores = getattr(ctx.cultivate_detail, 'base_score', DEFAULT_BASE_SCORES)
 
         base_energy = getattr(ctx.cultivate_detail.turn_info, 'base_energy', None)
         if base_energy is not None:
             log.info(f"Energy: {base_energy:.0f}%")
-
-        fsg_lookup = {}
-        for g in getattr(ctx.cultivate_detail, 'friendship_score_groups', []):
-            if isinstance(g, dict) and g.get('characters'):
-                mult = g.get('multiplier', 100) / 100.0
-                for cname in g['characters']:
-                    fsg_lookup[cname] = mult
-
-        # Stat cap penalties from config
-        stat_cap_penalties = getattr(ctx.cultivate_detail, 'stat_cap_penalties', [
-            [95, 0], [90, 70], [80, 80], [70, 90]
-        ])
-
-        for idx in range(5):
-            til = ctx.cultivate_detail.turn_info.training_info_list[idx]
-            target_type = type_map[idx]
-            friend_count = 0
-            friend_total = 0.0
-            npc_count = 0
-            npc_total = 0.0
-            pal_count = 0
-            score = base_scores[idx] if isinstance(base_scores, (list, tuple)) and len(base_scores) > idx else 0.0
-            detected_chars = getattr(til, 'detected_characters', [])
-            slot_name_map = {}
-            for slot_idx, cname, cscore in detected_chars:
-                if cname is not None:
-                    slot_name_map[slot_idx] = cname
-            sc_list = getattr(til, "support_card_info_list", []) or []
-            for sc_idx, sc in enumerate(sc_list):
-                favor = getattr(sc, "favor", SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN)
-                ctype = getattr(sc, "card_type", SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN)
-                if ctype == SupportCardType.SUPPORT_CARD_TYPE_NPC:
-                    npc_count += 1
-                    npc_total += npc_w
-                    score += npc_w
-                    continue
-                if ctype == SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN:
-                    continue
-                if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN:
-                    continue
-
-                if ctype == SupportCardType.SUPPORT_CARD_TYPE_FRIEND:
-                    pal_count += 1
-                    pal_scores = ctx.cultivate_detail.pal_friendship_score
-                    if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_1:
-                        score += pal_scores[0]
-                    elif favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_2:
-                        score += pal_scores[1]
-                    elif favor in (SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_3, SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_4):
-                        score += pal_scores[2]
-                    continue
-                # Support card friendship scoring
-                char_name = slot_name_map.get(sc_idx)
-                fsg_mult = fsg_lookup.get(char_name, 1.0) if char_name else 1.0
-                is_green = favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_2
-                w = w_friendship_green if is_green else w_friendship
-                friend_add = w * fsg_mult
-                friend_count += 1
-                friend_total += friend_add
-                score += friend_add
-
-            stat_results = getattr(til, 'stat_results', {})
-            stat_score = 0.0
-            stat_parts = []
-            for sk_idx, sk in enumerate(stat_keys):
-                sv_val = stat_results.get(sk, 0)
-                if sv_val > 0:
-                    contrib = sv_val * stat_mult[sk_idx]
-                    stat_score += contrib
-                    stat_parts.append(f"{sk}:{sv_val}")
-
-            score += stat_score
-            try:
-                fr = int(getattr(til, 'failure_rate', -1))
-            except Exception:
-                fr = -1
-            hint_bonus = 0.0
-            hint_count = 0
-            try:
-                boost_chars = getattr(ctx.cultivate_detail, 'hint_boost_characters', [])
-                boost_mult = getattr(ctx.cultivate_detail, 'hint_boost_multiplier', 100) / 100.0
-                char_list_hint = getattr(til, 'detected_characters', [])
-                has_any_hint = False
-                hint_total = 0.0
-                for cname, cscore, c_has_hint in char_list_hint:
-                    if c_has_hint:
-                        has_any_hint = True
-                        if cname in boost_chars:
-                            hint_total += w_hint * boost_mult
-                        else:
-                            hint_total += w_hint
-                        hint_count += 1
-                if hint_count > 0:
-                    hint_bonus = hint_total / hint_count
-                elif not has_any_hint and bool(getattr(til, 'has_hint', False)):
-                    hint_bonus = w_hint
-                    hint_count = 1
-            except Exception:
-                hint_bonus = w_hint if bool(getattr(til, 'has_hint', False)) else 0.0
-            score += hint_bonus
-            energy_change_val = getattr(til, 'energy_change', 0.0)
-            energy_change_contrib = energy_change_val * w_energy_change
-            score += energy_change_contrib
-            scenario_additive = 0.0
-            scenario_multiplier = 1.0
-            scenario_formula_parts = []
-            scenario_mult_parts = []
-            try:
-                scenario = ctx.cultivate_detail.scenario
-                if scenario is not None:
-                    scenario_additive, scenario_multiplier, scenario_formula_parts, scenario_mult_parts = scenario.compute_scenario_bonuses(
-                        ctx, idx, getattr(til, "support_card_info_list", []), date, period_idx, current_energy)
-            except Exception:
-                pass
-            score += scenario_additive
-
-            # Pal card multiplier (percentage)
-            pal_mult = 1.0
-            if pal_count > 0:
-                pal_pct = max(0.0, min(100.0, ctx.cultivate_detail.pal_card_multiplier))
-                pal_mult = 1.0 + pal_pct / 100.0
-                score *= pal_mult
-
-            # Failure rate multiplier
-            fail_mult = 1.0
-            try:
-                if getattr(ctx.cultivate_detail, 'compensate_failure', True):
-                    fr_val = int(getattr(til, 'failure_rate', -1))
-                    if fr_val >= 0:
-                        divisor = float(getattr(ctx.cultivate_detail, 'failure_rate_divisor', 50.0))
-                        fail_mult = max(0.0, 1.0 - (float(fr_val) / divisor))
-                        score *= fail_mult
-            except Exception:
-                pass
-
-            if scenario_multiplier != 1.0:
-                score *= scenario_multiplier
-
-            # Stat cap penalty from configurable table
-            target_mult = 1.0
-            try:
-                expect_attr = ctx.cultivate_detail.expect_attribute
-                if isinstance(expect_attr, list) and len(expect_attr) == 5:
-                    uma = ctx.cultivate_detail.turn_info.uma_attribute
-                    curr_vals = [uma.speed, uma.stamina, uma.power, uma.will, uma.intelligence]
-                    cap_val = float(expect_attr[idx])
-                    curr_val = float(curr_vals[idx])
-                    if cap_val > 0 and cap_val < 9999:
-                        ratio_pct = (curr_val / cap_val) * 100
-                        for threshold, mult_pct in sorted(stat_cap_penalties, key=lambda x: -x[0]):
-                            if ratio_pct >= threshold:
-                                target_mult = mult_pct / 100.0
-                                break
-                        if target_mult != 1.0:
-                            log.info(f"{names[idx]}: stat cap x{target_mult:.0%} ({curr_val:.0f}/{cap_val:.0f}={ratio_pct:.0f}%)")
-                        score *= target_mult
-            except Exception:
-                pass
-
-            # Extra weight multiplier
-            weight_mult = 1.0
-            try:
-                ew = extra_weight[idx] if isinstance(extra_weight, (list, tuple)) and len(extra_weight) == 5 else 0.0
-            except Exception:
-                ew = 0.0
-            if ew > -1.0:
-                weight_mult = 1.0 + float(ew)
-                weight_mult = max(0.0, min(2.0, weight_mult))
-                score *= weight_mult
-
-            computed_scores[idx] = score
-
-            # Build log line
-            base_val = base_scores[idx] if isinstance(base_scores, (list, tuple)) and len(base_scores) > idx else 0.0
-            parts = []
-            if base_val != 0:
-                parts.append(f"base:{base_val:.1f}")
-            if stat_score > 0:
-                parts.append(f"stats:+{stat_score:.1f}")
-            if friend_total > 0:
-                parts.append(f"friend({friend_count}):+{friend_total:.1f}")
-            if energy_change_contrib != 0:
-                parts.append(f"nrg({energy_change_val:+.0f}):{energy_change_contrib:+.1f}")
-            if npc_total > 0:
-                parts.append(f"npc({npc_count}):+{npc_total:.1f}")
-            if hint_bonus > 0:
-                parts.append(f"hint({hint_count}):+{hint_bonus:.1f}")
-            parts.extend(scenario_formula_parts)
-
-            mult_strs = []
-            if pal_mult != 1.0:
-                mult_strs.append(f"pal:x{pal_mult:.2f}")
-            if fail_mult != 1.0:
-                mult_strs.append(f"fail:x{fail_mult:.2f}")
-            mult_strs.extend(scenario_mult_parts)
-            if target_mult != 1.0:
-                mult_strs.append(f"cap:x{target_mult:.2f}")
-            if weight_mult != 1.0:
-                mult_strs.append(f"wt:x{weight_mult:.2f}")
-
-            formula_str = " ".join(parts)
-            if mult_strs:
-                formula_str += " | " + " ".join(mult_strs)
-
-            stat_str = " | " + " ".join(stat_parts) if stat_parts else ""
-            nrg_change = getattr(til, 'energy_change', 0.0)
-            nrg_str = f" | nrg:{nrg_change:+.0f}" if nrg_change != 0 else ""
-            log.info(f"{names[idx]}: {score:.1f} = [{formula_str}]{stat_str}{nrg_str}")
+        computed_scores = compute_full_training_scores(ctx, date, extra_weight, current_energy)
 
         ctx.cultivate_detail.turn_info.parse_train_info_finish = True
         
@@ -629,7 +640,6 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
             d = -1
 
         max_score = max(computed_scores) if len(computed_scores) == 5 else 0.0
-        eps = 1e-9
         
         blocked_count = sum(blocked_trainings)
         available_trainings = [i for i, blocked in enumerate(blocked_trainings) if not blocked]
@@ -669,19 +679,13 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
                     ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
                     return
             
+            summer_threshold = getattr(ctx.cultivate_detail, 'summer_score_threshold', 0.34)
             if date in (35, 36, 59, 60):
                 best_idx_tmp = int(np.argmax(computed_scores))
                 best_score_tmp = computed_scores[best_idx_tmp]
-                summer_threshold = getattr(ctx.cultivate_detail, 'summer_score_threshold', 0.34)
                 if best_score_tmp < summer_threshold:
                     log.info(f"Low training score before summer, conserving energy (score < {summer_threshold:.2f})")
-                    chosen_idx = best_idx_tmp
-                else:
-                    ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
-                    chosen_idx = min(ties) if len(ties) > 0 else best_idx_tmp
-            else:
-                ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
-                chosen_idx = min(ties) if len(ties) > 0 else int(np.argmax(computed_scores))
+            chosen_idx = choose_training_index(computed_scores, blocked_trainings, date, summer_threshold)
         local_training_type = TrainingType(chosen_idx + 1)
      
         ctx.cultivate_detail.turn_info.cached_training_type = local_training_type

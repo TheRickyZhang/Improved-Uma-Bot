@@ -167,7 +167,7 @@ def script_cultivate_main_menu(ctx: UmamusumeContext):
         return
 
     if not ctx.cultivate_detail.turn_info.parse_train_info_finish:
-        limit = int(getattr(ctx.cultivate_detail, 'rest_threshold', getattr(ctx.cultivate_detail, 'rest_treshold', getattr(ctx.cultivate_detail, 'fast_path_energy_limit', 48))))
+        limit = int(getattr(ctx.cultivate_detail, 'rest_threshold', 48))
         if has_extra_race:
             ctx.cultivate_detail.turn_info.parse_train_info_finish = True
             return
