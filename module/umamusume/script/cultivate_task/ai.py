@@ -23,15 +23,22 @@ URA_RACE_WINDOWS = [
     ((79, 99), 2385, UI_CULTIVATE_URA_RACE_3),
 ]
 
-def weights_for_date(date):
-    if date <= DATE_JUNIOR_END:
-        return 0.11, 0.10
-    elif date <= DATE_CLASSIC_END:
-        return 0.11, 0.10
-    elif date <= DATE_SPRING_END:
-        return 0.11, 0.10
-    else:
-        return 0.03, 0.05
+def weights_for_date_v2(ctx, date):
+    """Get friendship weight and green discount from context (v2 scale)."""
+    from module.umamusume.constants.scoring_constants import DEFAULT_SCORE_VALUE, DEFAULT_FRIENDSHIP_GREEN_DISCOUNT, DEFAULT_NPC_WEIGHT
+    from module.umamusume.constants.game_constants import get_date_period_index
+    sv = getattr(ctx.cultivate_detail, 'score_value', DEFAULT_SCORE_VALUE)
+    period_idx = get_date_period_index(date)
+    try:
+        arr = sv[period_idx]
+    except Exception:
+        arr = [11, 0.6, 9]
+    w_friendship = float(arr[0]) if len(arr) > 0 else 11.0
+    green_discount = float(getattr(ctx.cultivate_detail, 'friendship_green_discount', DEFAULT_FRIENDSHIP_GREEN_DISCOUNT)) / 100.0
+    w_friendship_green = w_friendship * (1.0 - green_discount)
+    npc_weights = getattr(ctx.cultivate_detail, 'npc_weight', DEFAULT_NPC_WEIGHT)
+    npc_w = float(npc_weights[period_idx]) if period_idx < len(npc_weights) else 0.0
+    return w_friendship, w_friendship_green, npc_w
 
 def get_ura_race_id_and_template(date):
     for rng, rid, tpl in URA_RACE_WINDOWS:
@@ -96,7 +103,7 @@ def get_operation(ctx: UmamusumeContext) -> TurnOperation | None:
             turn_operation.turn_operation_type = TurnOperationType.TURN_OPERATION_TYPE_TRIP
             return turn_operation
 
-    limit = getattr(ctx.cultivate_detail, 'rest_threshold', getattr(ctx.cultivate_detail, 'rest_treshold', getattr(ctx.cultivate_detail, 'fast_path_energy_limit', 48)))
+    limit = getattr(ctx.cultivate_detail, 'rest_threshold', 48)
     if limit == 0:
         energy = 100
     if energy <= limit:
@@ -119,10 +126,10 @@ def get_operation(ctx: UmamusumeContext) -> TurnOperation | None:
                                 mood_below = mood_val <= mood_threshold
                                 energy_below = energy <= energy_threshold
                                 
-                                log.info(f"PAL outing check - Stage {stage}:")
-                                log.info(f"Mood: {mood_val} vs {mood_threshold} - {'<=' if mood_below else '>'}")
-                                log.info(f"Energy: {energy} vs {energy_threshold} - {'<=' if energy_below else '>'}")
-                                
+                                log.debug(f"PAL outing check - Stage {stage}:")
+                                log.debug(f"Mood: {mood_val} vs {mood_threshold} - {'<=' if mood_below else '>'}")
+                                log.debug(f"Energy: {energy} vs {energy_threshold} - {'<=' if energy_below else '>'}")
+
                                 if mood_below and energy_below:
                                     log.info("Both conditions met - using pal outing instead of rest")
                                     turn_operation.turn_operation_type = TurnOperationType.TURN_OPERATION_TYPE_TRIP
@@ -154,7 +161,7 @@ def get_operation(ctx: UmamusumeContext) -> TurnOperation | None:
         SupportCardType.SUPPORT_CARD_TYPE_INTELLIGENCE,
     ]
 
-    w_lv1, w_lv2 = weights_for_date(date)
+    w_friendship, w_friendship_green, npc_w = weights_for_date_v2(ctx, date)
 
     training_score = [0.0, 0.0, 0.0, 0.0, 0.0]
     for idx in range(5):
@@ -165,16 +172,16 @@ def get_operation(ctx: UmamusumeContext) -> TurnOperation | None:
             favor = getattr(sc, "favor", SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN)
             ctype = getattr(sc, "card_type", SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN)
             if ctype == SupportCardType.SUPPORT_CARD_TYPE_NPC:
-                score += 0.05
+                score += npc_w
                 continue
             if ctype == SupportCardType.SUPPORT_CARD_TYPE_UNKNOWN:
                 continue
             if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_UNKNOWN:
                 continue
             if favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_1:
-                score += w_lv1
+                score += w_friendship
             elif favor == SupportCardFavorLevel.SUPPORT_CARD_FAVOR_LEVEL_2:
-                score += w_lv2
+                score += w_friendship_green
         training_score[idx] = score
 
     if getattr(ctx.cultivate_detail, 'compensate_failure', True):
@@ -245,10 +252,10 @@ def get_operation(ctx: UmamusumeContext) -> TurnOperation | None:
                                         mood_below = mood_val <= mood_threshold
                                         energy_below = energy <= energy_threshold
                                         
-                                        log.info(f"PAL outing check - Stage {stage}:")
-                                        log.info(f"Mood: {mood_val} vs {mood_threshold} - {'<=' if mood_below else '>'}")
-                                        log.info(f"Energy: {energy} vs {energy_threshold} - {'<=' if energy_below else '>'}")
-                                        
+                                        log.debug(f"PAL outing check - Stage {stage}:")
+                                        log.debug(f"Mood: {mood_val} vs {mood_threshold} - {'<=' if mood_below else '>'}")
+                                        log.debug(f"Energy: {energy} vs {energy_threshold} - {'<=' if energy_below else '>'}")
+
                                         if mood_below and energy_below:
                                             log.info("Both conditions met - using pal outing instead of rest")
                                             turn_operation.turn_operation_type = TurnOperationType.TURN_OPERATION_TYPE_TRIP
@@ -339,10 +346,10 @@ def get_operation(ctx: UmamusumeContext) -> TurnOperation | None:
                                 mood_below = mood_val <= mood_threshold
                                 energy_below = energy <= energy_threshold
                                 
-                                log.info(f"PAL outing check - Stage {stage}:")
-                                log.info(f"Mood: {mood_val} vs {mood_threshold} - {'<=' if mood_below else '>'}")
-                                log.info(f"Energy: {energy} vs {energy_threshold} - {'<=' if energy_below else '>'}")
-                                
+                                log.debug(f"PAL outing check - Stage {stage}:")
+                                log.debug(f"Mood: {mood_val} vs {mood_threshold} - {'<=' if mood_below else '>'}")
+                                log.debug(f"Energy: {energy} vs {energy_threshold} - {'<=' if energy_below else '>'}")
+
                                 if mood_below and energy_below:
                                     log.info("Both conditions met - using pal outing instead of rest")
                                     pal_outing_available = True

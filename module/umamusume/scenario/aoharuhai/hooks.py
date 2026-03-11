@@ -33,7 +33,7 @@ def aoharuhai_after_hook(ctx, img):
             for team_tpl in [REF_AOHARUHAI_TEAM_NAME_0, REF_AOHARUHAI_TEAM_NAME_1, 
                              REF_AOHARUHAI_TEAM_NAME_2, REF_AOHARUHAI_TEAM_NAME_3]:
                 if image_match(team_roi, team_tpl).find_match:
-                    log.info("Team name selection screen detected, skipping auto-click")
+                    log.debug("Team name selection screen detected, skipping auto-click")
                     return True
         except Exception:
             pass

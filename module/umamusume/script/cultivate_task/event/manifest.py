@@ -181,7 +181,7 @@ def calculate_optimal_choice_from_db(ctx: UmamusumeContext, event_data: dict) ->
     year_text = state["year"] if state["year"] else "Unknown"
     mood_val = state["mood"]
     mood_text = f"Level {mood_val}" if mood_val is not None else "Unknown"
-    log.info(f"HP: {energy}, Year: {year_text}, Mood: {mood_text}")
+    log.debug(f"HP: {energy}, Year: {year_text}, Mood: {mood_text}")
 
     custom_weights = None
     try:
@@ -236,20 +236,20 @@ def calculate_optimal_choice_from_db(ctx: UmamusumeContext, event_data: dict) ->
 
     if mood_val == 5:
         weights['Mood'] = 0
-        log.info("Mood already maxxed")
+        log.debug("Mood already maxxed")
 
     if energy > 84:
         weights['HP'] = 0
-        log.info("Energy already near full")
+        log.debug("Energy already near full")
     elif 40 <= energy <= 60:
         weights['HP'] = 30
-        log.info("Focusing on energy to avoid rest")
+        log.debug("Focusing on energy to avoid rest")
     else:
         if 'HP' not in weights:
             weights['HP'] = 16
 
     weight_str = ", ".join(f"{k}:{v}" for k, v in sorted(weights.items()))
-    log.info(f"Event weights: {weight_str}")
+    log.debug(f"Event weights: {weight_str}")
 
     best_choice = None
     best_score = -1
@@ -291,7 +291,7 @@ def get_event_choice(ctx: UmamusumeContext, event_name: str) -> int:
             if event_name in overrides and isinstance(overrides[event_name], int):
                 choice = int(overrides[event_name])
                 if choice > 0:
-                    log.info(f"User overwrite: Choice {choice}")
+                    log.debug(f"User overwrite: Choice {choice}")
                     return choice
             try:
                 keys = list(overrides.keys())
@@ -299,7 +299,7 @@ def get_event_choice(ctx: UmamusumeContext, event_name: str) -> int:
                 if matched and matched in overrides and isinstance(overrides[matched], int):
                     choice = int(overrides[matched])
                     if choice > 0:
-                        log.info(f"User overwrite: Choice {choice}")
+                        log.debug(f"User overwrite: Choice {choice}")
                         return choice
             except Exception:
                 pass
@@ -324,7 +324,7 @@ def get_event_choice(ctx: UmamusumeContext, event_name: str) -> int:
         return event_map[event_name_normalized](ctx)
     
     # Try local database
-    log.info(f"🔍 Checking local database for event '{event_name}'...")
+    log.debug(f"Checking local database for event '{event_name}'...")
     local_choice = get_local_event_choice(ctx, event_name)
     if local_choice is not None:
         return local_choice

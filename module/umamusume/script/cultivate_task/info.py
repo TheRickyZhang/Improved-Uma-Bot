@@ -122,20 +122,20 @@ def script_info(ctx: UmamusumeContext):
                 log.warning(f"Still no match with lower threshold - OCR: '{original_text}'")
                 try:
                     ctx.ctrl.click_by_point(ESCAPE)
-                    log.info("fallback click")
+                    log.debug("fallback click")
                     time.sleep(DIALOG_WAIT)
                 except Exception as e:
                     log.error(f"Fallback ESCAPE click failed: {e}")
                 return
             else:
-                log.info(f"✅ Found match with lower threshold: '{original_text}' -> '{title_text}'")
+                log.debug(f"Found match with lower threshold: '{original_text}' -> '{title_text}'")
         else:
-            log.info(f"✅ Found match: '{original_text}' -> '{title_text}'")
+            log.debug(f"Found match: '{original_text}' -> '{title_text}'")
         
         # Debug: Show which TITLE index this matches to
         try:
             title_index = TITLE.index(title_text)
-            log.info(f"🔍 DEBUG: title_text='{title_text}' matches TITLE[{title_index}]='{TITLE[title_index]}'")
+            log.debug(f"DEBUG: title_text='{title_text}' matches TITLE[{title_index}]='{TITLE[title_index]}'")
         except ValueError:
             log.warning(f"⚠️ DEBUG: title_text='{title_text}' not found in TITLE array")
         
@@ -203,10 +203,10 @@ def script_info(ctx: UmamusumeContext):
                 if ctx.cultivate_detail.clock_used < ctx.cultivate_detail.clock_use_limit:
                     ctx.ctrl.click_by_point(RACE_FAIL_CONTINUE_USE_CLOCK)
                     ctx.cultivate_detail.clock_used += 1
-                    log.info("🔋 Clock limit %s, used %s", str(ctx.cultivate_detail.clock_use_limit), str(ctx.cultivate_detail.clock_used))
+                    log.debug("Clock limit %s, used %s", str(ctx.cultivate_detail.clock_use_limit), str(ctx.cultivate_detail.clock_used))
                 else:
                     ctx.ctrl.click_by_point(RACE_FAIL_CONTINUE_CANCEL)
-                    log.info("🔋 Reached Clock limit, cancel race")
+                    log.debug("Reached Clock limit, cancel race")
             else:
                 time.sleep(SCROLL_DELAY)
                 img_retry = ctx.ctrl.get_screen(to_gray=True)
@@ -215,13 +215,13 @@ def script_info(ctx: UmamusumeContext):
                     if ctx.cultivate_detail.clock_used < ctx.cultivate_detail.clock_use_limit:
                         ctx.ctrl.click_by_point(RACE_FAIL_CONTINUE_USE_CLOCK)
                         ctx.cultivate_detail.clock_used += 1
-                        log.info("(retry) Clock limit %s, used %s", str(ctx.cultivate_detail.clock_use_limit), str(ctx.cultivate_detail.clock_used))
+                        log.debug("(retry) Clock limit %s, used %s", str(ctx.cultivate_detail.clock_use_limit), str(ctx.cultivate_detail.clock_used))
                     else:
                         ctx.ctrl.click_by_point(RACE_FAIL_CONTINUE_CANCEL)
-                        log.info("(retry) Reached Clock limit, cancel race")
+                        log.debug("(retry) Reached Clock limit, cancel race")
                 else:
                     ctx.ctrl.click_by_point(RACE_FAIL_CONTINUE_CANCEL)
-                    log.info("🔋 Not a race fail screen - canceling")
+                    log.debug("Not a race fail screen - canceling")
             log.debug("Clock limit %s, used %s", str(ctx.cultivate_detail.clock_use_limit),
                         str(ctx.cultivate_detail.clock_used))
         if title_text == TITLE[5]: #Earned Title
@@ -238,22 +238,22 @@ def script_info(ctx: UmamusumeContext):
             from module.umamusume.asset.template import UI_FRIEND_RECREATION, UI_FRIEND_RECREATION_COMPLETE
             
             result_complete = image_match(img_gray, UI_FRIEND_RECREATION_COMPLETE)
-            log.info(f"🔍 Recreation - Friend recreation complete template match: {result_complete.find_match}")
+            log.debug(f"Friend recreation complete template match: {result_complete.find_match}")
             
             if result_complete.find_match:
-                log.info("🏖️ Friend recreation complete detected - using CULTIVATE_TRIP_WITH_FRIEND_COMPLETE")
+                log.debug("Friend recreation complete detected - using CULTIVATE_TRIP_WITH_FRIEND_COMPLETE")
                 ctx.ctrl.click_by_point(CULTIVATE_TRIP_WITH_FRIEND_COMPLETE)
                 
                 pass
             else:
                 result = image_match(img_gray, UI_FRIEND_RECREATION)
-                log.info(f"🔍 Recreation - Friend recreation template match: {result.find_match}")
+                log.debug(f"Friend recreation template match: {result.find_match}")
                 
                 if result.find_match:
-                    log.info("🏖️ Friend recreation detected - using CULTIVATE_TRIP_WITH_FRIEND")
+                    log.debug("Friend recreation detected - using CULTIVATE_TRIP_WITH_FRIEND")
                     ctx.ctrl.click_by_point(CULTIVATE_TRIP_WITH_FRIEND)
                 else:
-                    log.info("🏖️ Regular recreation detected - using CULTIVATE_OPERATION_COMMON_CONFIRM")
+                    log.debug("Regular recreation detected - using CULTIVATE_OPERATION_COMMON_CONFIRM")
                     ctx.ctrl.click_by_point(CULTIVATE_OPERATION_COMMON_CONFIRM)
         if title_text == TITLE[9]: #Confirmation
             ctx.ctrl.click_by_point(CULTIVATE_LEARN_SKILL_CONFIRM_AGAIN)
@@ -326,9 +326,9 @@ def script_info(ctx: UmamusumeContext):
                     center_x = suitable_race_match.center_point[0]
                     center_y = suitable_race_match.center_point[1]
                     ctx.ctrl.click(center_x, center_y, "Click suitable race")
-                    log.info(f"🎯 Clicked suitable race at position ({center_x}, {center_y})")
+                    log.debug(f"Clicked suitable race at position ({center_x}, {center_y})")
                 else:
-                    log.info("⚠️ Suitable race template not found - returning to main menu for normal logic")
+                    log.debug("Suitable race template not found - returning to main menu for normal logic")
                     ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
                     ctx.cultivate_detail.turn_info.turn_operation = None
 
@@ -340,17 +340,17 @@ def script_info(ctx: UmamusumeContext):
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             from module.umamusume.asset.ui import CONFIRMATION_LEARNSKILL_BUTTON
             result = image_match(img_gray, CONFIRMATION_LEARNSKILL_BUTTON)
-            log.info(f"🔍 Skip Confirmation - Template matching result: {result.find_match}")
+            log.debug(f"Skip Confirmation - Template matching result: {result.find_match}")
             if result.find_match:
                 # Use template matching coordinates for skill confirmation
                 center_x = (result.matched_area[0][0] + result.matched_area[1][0]) // 2
                 center_y = (result.matched_area[0][1] + result.matched_area[1][1]) // 2
                 ctx.ctrl.click(center_x, center_y, "Skill confirmation using template matching (Skip Confirmation)")
-                log.info(f"✅ Found skill confirmation button at ({center_x}, {center_y}) via Skip Confirmation")
+                log.debug(f"Found skill confirmation button at ({center_x}, {center_y}) via Skip Confirmation")
             else:
                 # Use CULTIVATE_LEARN_SKILL_CONFIRM_AGAIN coordinates for skill confirmations
                 ctx.ctrl.click_by_point(CULTIVATE_LEARN_SKILL_CONFIRM_AGAIN)
-                log.info("⚠️ Using skill confirmation coordinates for Skip Confirmation - template not found")
+                log.debug("Using skill confirmation coordinates for Skip Confirmation - template not found")
         if title_text == TITLE[16]: #Rest
             ctx.ctrl.click_by_point(CULTIVATE_OPERATION_COMMON_CONFIRM)
         if title_text == TITLE[17]: #Race Recommendations
@@ -412,30 +412,30 @@ def script_info(ctx: UmamusumeContext):
 
             current_date_name = get_date_name(current_date)
             next_period_name = get_date_name(next_period)
-            log.info(f"📅 Current game date: {current_date} ({current_date_name}), planning races for: {next_period} ({next_period_name})")
-            log.info(f"🔄 Updated game date to: {current_date} ({current_date_name})")
+            log.debug(f"Current game date: {current_date} ({current_date_name}), planning races for: {next_period} ({next_period_name})")
+            log.debug(f"Updated game date to: {current_date} ({current_date_name})")
 
             # Check for races in the next period
             from module.umamusume.asset.race_data import get_races_for_period
             next_period_races = get_races_for_period(next_period)
 
             if next_period_races:
-                log.info(f"🏁 Found {len(next_period_races)} races in next period {next_period} ({next_period_name}): {next_period_races}")
+                log.debug(f"Found {len(next_period_races)} races in next period {next_period} ({next_period_name}): {next_period_races}")
 
                 # Check if any of these races are in user's selected race list
                 user_selected_races = ctx.cultivate_detail.extra_race_list
                 matching_races = [race_id for race_id in next_period_races if race_id in user_selected_races]
 
                 if matching_races:
-                    log.info(f"✅ Found {len(matching_races)} user-selected races in next period {next_period} ({next_period_name}): {matching_races}")
+                    log.debug(f"Found {len(matching_races)} user-selected races in next period {next_period} ({next_period_name}): {matching_races}")
                     # Set the first matching race as target
                     target_race_id = matching_races[0]
-                    log.info(f"🎯 Setting target race ID: {target_race_id}")
+                    log.debug(f"Setting target race ID: {target_race_id}")
                 else:
-                    log.info(f"⚠️ No user-selected races found in next period {next_period} ({next_period_name})")
+                    log.debug(f"No user-selected races found in next period {next_period} ({next_period_name})")
                     target_race_id = 0  # Will search for any available race
             else:
-                log.info(f"⚠️ No races available in next period {next_period} ({next_period_name})")
+                log.debug(f"No races available in next period {next_period} ({next_period_name})")
                 target_race_id = 0  # Will search for any available race
 
             # Set a race operation so the race list logic knows what to do
@@ -459,13 +459,13 @@ def script_info(ctx: UmamusumeContext):
                 suitable_race_match = image_match(img, REF_SUITABLE_RACE)
                 
                 if suitable_race_match.find_match:
-                    log.info("✅ Found suitable race template - clicking on it")
+                    log.debug("Found suitable race template - clicking on it")
                     center_x = suitable_race_match.center_point[0]
                     center_y = suitable_race_match.center_point[1]
                     ctx.ctrl.click(center_x, center_y, "Click suitable race")
-                    log.info(f"🎯 Clicked suitable race at position ({center_x}, {center_y})")
+                    log.debug(f"Clicked suitable race at position ({center_x}, {center_y})")
                 else:
-                    log.info("⚠️ Suitable race template not found - returning to main menu for normal logic")
+                    log.debug("Suitable race template not found - returning to main menu for normal logic")
                     # Return to main menu since no races are available
                     ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
                     # Clear the race operation so AI can decide what to do next
@@ -503,30 +503,30 @@ def script_info(ctx: UmamusumeContext):
             
             current_date_name = get_date_name(current_date)
             next_period_name = get_date_name(next_period)
-            log.info(f"📅 Current game date: {current_date} ({current_date_name}), planning races for: {next_period} ({next_period_name})")
-            log.info(f"🔄 Updated game date to: {current_date} ({current_date_name})")
+            log.debug(f"Current game date: {current_date} ({current_date_name}), planning races for: {next_period} ({next_period_name})")
+            log.debug(f"Updated game date to: {current_date} ({current_date_name})")
             
             # Check for races in the next period
             from module.umamusume.asset.race_data import get_races_for_period
             next_period_races = get_races_for_period(next_period)
             
             if next_period_races:
-                log.info(f"🏁 Found {len(next_period_races)} races in next period {next_period} ({next_period_name}): {next_period_races}")
+                log.debug(f"Found {len(next_period_races)} races in next period {next_period} ({next_period_name}): {next_period_races}")
                 
                 # Check if any of these races are in user's selected race list
                 user_selected_races = ctx.cultivate_detail.extra_race_list
                 matching_races = [race_id for race_id in next_period_races if race_id in user_selected_races]
                 
                 if matching_races:
-                    log.info(f"✅ Found {len(matching_races)} user-selected races in next period {next_period} ({next_period_name}): {matching_races}")
+                    log.debug(f"Found {len(matching_races)} user-selected races in next period {next_period} ({next_period_name}): {matching_races}")
                     # Set the first matching race as target
                     target_race_id = matching_races[0]
-                    log.info(f"🎯 Setting target race ID: {target_race_id}")
+                    log.debug(f"Setting target race ID: {target_race_id}")
                 else:
-                    log.info(f"⚠️ No user-selected races found in next period {next_period} ({next_period_name})")
+                    log.debug(f"No user-selected races found in next period {next_period} ({next_period_name})")
                     target_race_id = 0  # Will search for any available race
             else:
-                log.info(f"⚠️ No races available in next period {next_period} ({next_period_name})")
+                log.debug(f"No races available in next period {next_period} ({next_period_name})")
                 target_race_id = 0  # Will search for any available race
             
             # Set a race operation so the race list logic knows what to do
@@ -549,13 +549,13 @@ def script_info(ctx: UmamusumeContext):
                 suitable_race_match = image_match(img, REF_SUITABLE_RACE)
                 
                 if suitable_race_match.find_match:
-                    log.info("✅ Found suitable race template - clicking on it")
+                    log.debug("Found suitable race template - clicking on it")
                     center_x = suitable_race_match.center_point[0]
                     center_y = suitable_race_match.center_point[1]
                     ctx.ctrl.click(center_x, center_y, "Click suitable race")
-                    log.info(f"🎯 Clicked suitable race at position ({center_x}, {center_y})")
+                    log.debug(f"Clicked suitable race at position ({center_x}, {center_y})")
                 else:
-                    log.info("⚠️ Suitable race template not found - returning to main menu for normal logic")
+                    log.debug("Suitable race template not found - returning to main menu for normal logic")
                     # Return to main menu since no races are available
                     ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
                     # Clear the race operation so AI can decide what to do next
@@ -577,17 +577,17 @@ def script_info(ctx: UmamusumeContext):
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             from module.umamusume.asset.ui import CONFIRMATION_LEARNSKILL_BUTTON
             result = image_match(img_gray, CONFIRMATION_LEARNSKILL_BUTTON)
-            log.info(f"🔍 Primary template matching result: {result.find_match}")
+            log.debug(f"Primary template matching result: {result.find_match}")
             if result.find_match:
                 # Use template matching coordinates
                 center_x = (result.matched_area[0][0] + result.matched_area[1][0]) // 2
                 center_y = (result.matched_area[0][1] + result.matched_area[1][1]) // 2
                 ctx.ctrl.click(center_x, center_y, "Skill confirmation using template matching")
-                log.info(f"✅ Found skill confirmation button at ({center_x}, {center_y})")
+                log.debug(f"Found skill confirmation button at ({center_x}, {center_y})")
             else:
                 # Fallback to hardcoded coordinates
                 ctx.ctrl.click_by_point(CULTIVATE_LEARN_SKILL_CONFIRM_AGAIN)
-                log.info("⚠️ Using fallback coordinates for skill confirmation - template not found")
+                log.debug("Using fallback coordinates for skill confirmation - template not found")
         if title_text == TITLE[28]:  # Successfully Acquired Skill
             ctx.cultivate_detail.learn_skill_selected = True  
             ctx.ctrl.click_by_point(CULTIVATE_LEARN_SKILL_DONE_CONFIRM)

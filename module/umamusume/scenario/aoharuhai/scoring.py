@@ -67,8 +67,8 @@ def compute_aoharu_bonuses(ctx, idx, support_card_info_list, date, period_idx, c
         additive += spirit_bonus
 
     if special_bonus > 0:
-        formula_parts.append(f"special({special_count}):+{special_bonus:.3f}")
+        formula_parts.append(f"special({special_count}):+{special_bonus:.1f}")
     if spirit_bonus > 0:
-        formula_parts.append(f"spirit({spirit_count}):+{spirit_bonus:.3f}")
+        formula_parts.append(f"spirit({spirit_count}):+{spirit_bonus:.1f}")
 
     return (additive, multiplier, formula_parts, mult_parts)

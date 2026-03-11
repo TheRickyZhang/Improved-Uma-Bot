@@ -86,7 +86,7 @@ def detect_hint_after_event(ctrl, event_name):
                 if skill:
                     canonical = get_canonical_skill_name(skill)
                     resolved = canonical if canonical else skill
-                    log.info("Hint: %s", resolved)
+                    log.debug("Hint: %s", resolved)
                     log_detected_skill(resolved, "event")
                 return
             time.sleep(DIALOG_WAIT)
@@ -159,7 +159,7 @@ def script_cultivate_event(ctx: UmamusumeContext):
             _, selectors2 = parse_cultivate_event(ctx, img_retry)
             if isinstance(selectors2, list) and len(selectors2) > 0:
                 selectors = selectors2
-                log.info(len(selectors))
+                log.debug(len(selectors))
         except Exception:
             pass
     
@@ -197,7 +197,7 @@ def script_cultivate_event(ctx: UmamusumeContext):
             idx = len(selectors)
         target_pt = selectors[idx - 1]
         try:
-            log.info(len(selectors))
+            log.debug(len(selectors))
         except Exception:
             pass
         ctx.ctrl.click(int(target_pt[0]), int(target_pt[1]), f"Event option-{choice_index}")

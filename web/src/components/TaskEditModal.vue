@@ -332,6 +332,14 @@
                     </div>
                   </div>
                 </div>
+                <div class="col-3" v-if="compensateFailure">
+                  <div class="form-group">
+                    <label for="inputFailureRateDivisor">Failure Rate Divisor</label>
+                    <input v-model.number="failureRateDivisor" type="number" min="10" max="200" step="5"
+                         class="form-control" id="inputFailureRateDivisor">
+                    <small class="form-text text-muted">Higher = less penalty (default 50: 25% fail → 0.5x score)</small>
+                  </div>
+                </div>
               </div>
                             <div class="form-group Cure-asap">
                 <label for="cure-asap-input">Cure These Conditions As Soon As Possible (Separate by comma)</label>
@@ -713,7 +721,7 @@
                 <div class="row">
                   <div v-for="(v, i) in baseScore" :key="i" class="col-md-2 col-6">
                     <div class="form-group mb-1"><small>{{ ['Speed','Stamina','Power','Guts','Wit'][i] }}</small></div>
-                    <input type="number" step="0.01" v-model.number="baseScore[i]" class="form-control">
+                    <input type="number" step="1" v-model.number="baseScore[i]" class="form-control">
                   </div>
                 </div>
                 <hr style="border-color: var(--accent); opacity: 0.5; margin: 12px 0;">
@@ -725,24 +733,20 @@
                     <label>Junior</label>
                     <div class="row">
                       <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueJunior[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueJunior[1]" class="form-control">
+                        <div class="form-group mb-1"><small>Friendship</small></div>
+                        <input type="number" step="1" v-model.number="scoreValueJunior[0]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Energy Change (+/-)</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueJunior[2]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueJunior[1]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Hint</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueJunior[3]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueJunior[2]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6" v-if="selectedScenario === 2">
                         <div class="form-group mb-1"><small>Special Training</small></div>
-                        <input type="number" step="0.01" v-model.number="specialJunior" class="form-control">
+                        <input type="number" step="1" v-model.number="specialJunior" class="form-control">
                       </div>
                     </div>
                   </div>
@@ -752,24 +756,20 @@
                     <label>Classic</label>
                     <div class="row">
                       <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueClassic[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueClassic[1]" class="form-control">
+                        <div class="form-group mb-1"><small>Friendship</small></div>
+                        <input type="number" step="1" v-model.number="scoreValueClassic[0]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Energy Change (+/-)</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueClassic[2]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueClassic[1]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Hint</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueClassic[3]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueClassic[2]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6" v-if="selectedScenario === 2">
                         <div class="form-group mb-1"><small>Special Training</small></div>
-                        <input type="number" step="0.01" v-model.number="specialClassic" class="form-control">
+                        <input type="number" step="1" v-model.number="specialClassic" class="form-control">
                       </div>
                     </div>
                   </div>
@@ -779,24 +779,20 @@
                     <label>Senior</label>
                     <div class="row">
                       <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueSenior[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueSenior[1]" class="form-control">
+                        <div class="form-group mb-1"><small>Friendship</small></div>
+                        <input type="number" step="1" v-model.number="scoreValueSenior[0]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Energy Change (+/-)</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueSenior[2]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueSenior[1]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Hint</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueSenior[3]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueSenior[2]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6" v-if="selectedScenario === 2">
                         <div class="form-group mb-1"><small>Special Training</small></div>
-                        <input type="number" step="0.01" v-model.number="specialSenior" class="form-control">
+                        <input type="number" step="1" v-model.number="specialSenior" class="form-control">
                       </div>
                     </div>
                   </div>
@@ -806,24 +802,20 @@
                     <label>Senior After Summer</label>
                     <div class="row">
                       <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueSeniorAfterSummer[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueSeniorAfterSummer[1]" class="form-control">
+                        <div class="form-group mb-1"><small>Friendship</small></div>
+                        <input type="number" step="1" v-model.number="scoreValueSeniorAfterSummer[0]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Energy Change (+/-)</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueSeniorAfterSummer[2]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueSeniorAfterSummer[1]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Hint</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueSeniorAfterSummer[3]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueSeniorAfterSummer[2]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6" v-if="selectedScenario === 2">
                         <div class="form-group mb-1"><small>Special Training</small></div>
-                        <input type="number" step="0.01" v-model.number="specialSeniorAfterSummer" class="form-control">
+                        <input type="number" step="1" v-model.number="specialSeniorAfterSummer" class="form-control">
                       </div>
                     </div>
                   </div>
@@ -833,28 +825,30 @@
                     <label>Finale</label>
                     <div class="row">
                       <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueFinale[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green Friendship</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueFinale[1]" class="form-control">
+                        <div class="form-group mb-1"><small>Friendship</small></div>
+                        <input type="number" step="1" v-model.number="scoreValueFinale[0]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Energy Change (+/-)</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueFinale[2]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueFinale[1]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>Hint</small></div>
-                        <input type="number" step="0.01" v-model.number="scoreValueFinale[3]" class="form-control">
+                        <input type="number" step="1" v-model.number="scoreValueFinale[2]" class="form-control">
                       </div>
                       <div class="col-md-2 col-6" v-if="selectedScenario === 2">
                         <div class="form-group mb-1"><small>Special Training</small></div>
-                        <input type="number" step="0.01" v-model.number="specialFinale" class="form-control">
+                        <input type="number" step="1" v-model.number="specialFinale" class="form-control">
                       </div>
                 </div>
               </div>
             </div>
+
+                <div class="form-group" style="margin-top: 8px;">
+                  <label>Green Friendship Discount (%)</label>
+                  <p class="text-muted small">How much less green (lv2) friendship cards score vs blue (lv1). Default: 10%</p>
+                  <input type="number" step="1" min="0" max="100" v-model.number="friendshipGreenDiscount" class="form-control" style="max-width: 120px;">
+                </div>
 
                 <div v-if="selectedScenario === 2">
                 <hr style="border-color: var(--accent); opacity: 0.5; margin: 12px 0;">
@@ -875,103 +869,35 @@
                 </div>
                 <hr style="border-color: var(--accent); opacity: 0.5; margin: 12px 0;">
                 <div class="form-group" style="margin-top: 16px;">
-                  <div style="color: var(--accent);">NPC Score Value</div>
+                  <div style="color: var(--accent);">NPC Weight</div>
+                  <p class="text-muted small">Score bonus per NPC card present, by period</p>
                 </div>
-                <div class="row mb-2">
-                  <div class="col-12">
-                    <label>Junior</label>
-                    <div class="row">
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreJunior[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreJunior[1]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Max</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreJunior[2]" class="form-control">
-                      </div>
-                    </div>
+                <div class="row">
+                  <div v-for="(label, i) in ['Junior','Classic','Senior','Senior Late','Finale']" :key="i" class="col-md-2 col-6">
+                    <div class="form-group mb-1"><small>{{ label }}</small></div>
+                    <input type="number" step="1" v-model.number="npcWeight[i]" class="form-control">
                   </div>
                 </div>
-                <div class="row mb-2">
-                  <div class="col-12">
-                    <label>Classic</label>
-                    <div class="row">
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreClassic[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreClassic[1]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Max</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreClassic[2]" class="form-control">
-                      </div>
-                    </div>
+
+                <hr style="border-color: var(--accent); opacity: 0.5; margin: 12px 0;">
+                <div class="form-group" style="margin-top: 16px;">
+                  <div style="color: var(--accent);">Stat Cap Penalties</div>
+                  <p class="text-muted small">When current stat reaches X% of target, multiply training score by Y%</p>
+                </div>
+                <div v-for="(pair, i) in statCapPenalties" :key="'scp'+i" class="row mb-1">
+                  <div class="col-md-2 col-4">
+                    <div class="form-group mb-1" v-if="i===0"><small>At % of target</small></div>
+                    <input type="number" step="5" v-model.number="statCapPenalties[i][0]" class="form-control">
+                  </div>
+                  <div class="col-md-2 col-4">
+                    <div class="form-group mb-1" v-if="i===0"><small>Score multiplier %</small></div>
+                    <input type="number" step="5" v-model.number="statCapPenalties[i][1]" class="form-control">
+                  </div>
+                  <div class="col-md-2 col-4" style="padding-top: 4px;">
+                    <button v-if="statCapPenalties.length > 1" @click="statCapPenalties.splice(i, 1)" class="btn btn-sm btn-outline-danger" style="margin-top: 20px;">X</button>
                   </div>
                 </div>
-                <div class="row mb-2">
-                  <div class="col-12">
-                    <label>Senior</label>
-                    <div class="row">
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreSenior[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreSenior[1]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Max</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreSenior[2]" class="form-control">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-12">
-                    <label>Senior After Summer</label>
-                    <div class="row">
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreSeniorAfterSummer[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreSeniorAfterSummer[1]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Max</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreSeniorAfterSummer[2]" class="form-control">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-12">
-                    <label>Finale</label>
-                    <div class="row">
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Blue</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreFinale[0]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Green</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreFinale[1]" class="form-control">
-                      </div>
-                      <div class="col-md-2 col-6">
-                        <div class="form-group mb-1"><small>Max</small></div>
-                        <input type="number" step="0.01" v-model.number="npcScoreFinale[2]" class="form-control">
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <button @click="statCapPenalties.push([50, 100])" class="btn btn-sm btn-outline-secondary mt-1">+ Add threshold</button>
 
                 <hr style="border-color: var(--accent); opacity: 0.5; margin: 12px 0;">
                 <div class="form-group" style="margin-top: 16px;">
@@ -981,27 +907,27 @@
                 <div class="row">
                   <div class="col-md-2 col-6">
                     <div class="form-group mb-1"><small>Speed</small></div>
-                    <input type="number" step="0.001" v-model.number="statValueMultiplier[0]" class="form-control">
+                    <input type="number" step="0.1" v-model.number="statValueMultiplier[0]" class="form-control">
                   </div>
                   <div class="col-md-2 col-6">
                     <div class="form-group mb-1"><small>Stamina</small></div>
-                    <input type="number" step="0.001" v-model.number="statValueMultiplier[1]" class="form-control">
+                    <input type="number" step="0.1" v-model.number="statValueMultiplier[1]" class="form-control">
                   </div>
                   <div class="col-md-2 col-6">
                     <div class="form-group mb-1"><small>Power</small></div>
-                    <input type="number" step="0.001" v-model.number="statValueMultiplier[2]" class="form-control">
+                    <input type="number" step="0.1" v-model.number="statValueMultiplier[2]" class="form-control">
                   </div>
                   <div class="col-md-2 col-6">
                     <div class="form-group mb-1"><small>Guts</small></div>
-                    <input type="number" step="0.001" v-model.number="statValueMultiplier[3]" class="form-control">
+                    <input type="number" step="0.1" v-model.number="statValueMultiplier[3]" class="form-control">
                   </div>
                   <div class="col-md-2 col-6">
                     <div class="form-group mb-1"><small>Wits</small></div>
-                    <input type="number" step="0.001" v-model.number="statValueMultiplier[4]" class="form-control">
+                    <input type="number" step="0.1" v-model.number="statValueMultiplier[4]" class="form-control">
                   </div>
                   <div class="col-md-2 col-6">
                     <div class="form-group mb-1"><small>SP</small></div>
-                    <input type="number" step="0.001" v-model.number="statValueMultiplier[5]" class="form-control">
+                    <input type="number" step="0.1" v-model.number="statValueMultiplier[5]" class="form-control">
                   </div>
                 </div>
 
@@ -2286,6 +2212,7 @@ export default {
       clockUseLimit: 99,
       restTreshold: 48,
       compensateFailure: true,
+      failureRateDivisor: 50,
       summerScoreThreshold: 0.17,
       witRaceSearchThreshold: 0.08,
       learnSkillThreshold: 888,
@@ -2328,11 +2255,7 @@ export default {
         { characters: [], multiplier: 100, search: '', expanded: false }
       ],
       allTrainingCharacters: [],
-      npcScoreJunior: [0.05, 0.05, 0.05],
-      npcScoreClassic: [0.05, 0.05, 0.05],
-      npcScoreSenior: [0.05, 0.05, 0.05],
-      npcScoreSeniorAfterSummer: [0.03, 0.05, 0.05],
-      npcScoreFinale: [0, 0, 0.05],
+      npcWeight: [5, 5, 5, 3, 0],
 
       // URA配置
       skillEventWeight: [0, 0, 0],
@@ -2415,11 +2338,14 @@ export default {
       eventList: [],
       eventChoicesSelected: {},
 
-      scoreValueJunior: [0.11, 0.10, 0.006, 0.09],
-      scoreValueClassic: [0.11, 0.10, 0.006, 0.09],
-      scoreValueSenior: [0.11, 0.10, 0.006, 0.09],
-      scoreValueSeniorAfterSummer: [0.03, 0.05, 0.006, 0.09],
-      scoreValueFinale: [0, 0, 0.006, 0],
+      scoreValueJunior: [11, 0.6, 9],
+      scoreValueClassic: [11, 0.6, 9],
+      scoreValueSenior: [11, 0.6, 9],
+      scoreValueSeniorAfterSummer: [3, 0.6, 9],
+      scoreValueFinale: [0, 0.6, 0],
+      friendshipGreenDiscount: 10,
+      statCapPenalties: [[95, 0], [90, 70], [80, 80], [70, 90]],
+      scoringVersion: 2,
       specialJunior: 0.095,
       specialClassic: 0.095,
       specialSenior: 0.095,
@@ -2728,37 +2654,27 @@ export default {
     this.successToast = $('#liveToast').toast({})
     this.$nextTick(() => {
       this.initScrollSpy()
-      this.normalizeScoreArrays(this.selectedScenario === 2 ? 5 : 4)
+      this.normalizeScoreArrays(3)
     })
   },
   watch: {
     selectedScenario(newVal) {
-      this.normalizeScoreArrays(newVal === 2 ? 5 : 4)
+      this.normalizeScoreArrays(3)
     },
     scoreValueJunior(val) {
-      if (this.selectedScenario === 2 && Array.isArray(val) && val.length < 5) {
-        this.scoreValueJunior = [...val, ...Array(5 - val.length).fill(0.15)]
-      }
+      if (val.length < 3) this.scoreValueJunior = [...val, ...Array(3 - val.length).fill(0)]
     },
     scoreValueClassic(val) {
-      if (this.selectedScenario === 2 && Array.isArray(val) && val.length < 5) {
-        this.scoreValueClassic = [...val, ...Array(5 - val.length).fill(0.12)]
-      }
+      if (val.length < 3) this.scoreValueClassic = [...val, ...Array(3 - val.length).fill(0)]
     },
     scoreValueSenior(val) {
-      if (this.selectedScenario === 2 && Array.isArray(val) && val.length < 5) {
-        this.scoreValueSenior = [...val, ...Array(5 - val.length).fill(0.09)]
-      }
+      if (val.length < 3) this.scoreValueSenior = [...val, ...Array(3 - val.length).fill(0)]
     },
     scoreValueSeniorAfterSummer(val) {
-      if (this.selectedScenario === 2 && Array.isArray(val) && val.length < 5) {
-        this.scoreValueSeniorAfterSummer = [...val, ...Array(5 - val.length).fill(0.07)]
-      }
+      if (val.length < 3) this.scoreValueSeniorAfterSummer = [...val, ...Array(3 - val.length).fill(0)]
     },
     scoreValueFinale(val) {
-      if (this.selectedScenario === 2 && Array.isArray(val) && val.length < 5) {
-        this.scoreValueFinale = [...val, ...Array(5 - val.length).fill(0)]
-      }
+      if (val.length < 3) this.scoreValueFinale = [...val, ...Array(3 - val.length).fill(0)]
     }
   },
     methods: {
@@ -3043,29 +2959,18 @@ export default {
         return this.eventList.filter(name => name && name.toLowerCase().includes(q));
       },
     onScenarioChange() {
-      if (this.selectedScenario === 2) {
-        const setDefault = (arr) => {
-          if (Array.isArray(arr)) {
-            if (arr[4] === undefined || arr[4] === null || arr[4] === '') arr[4] = 0.09
-          }
-        }
-        setDefault(this.scoreValueJunior)
-        setDefault(this.scoreValueClassic)
-        setDefault(this.scoreValueSenior)
-        setDefault(this.scoreValueSeniorAfterSummer)
-        setDefault(this.scoreValueFinale)
-      }
+      // v2: score arrays are always 3 elements, no special handling needed
     },
         normalizeScoreArrays(targetLen) {
-      const ensureLen = (arr, special) => {
+      const ensureLen = (arr) => {
         if (arr.length > targetLen) arr.splice(targetLen)
-        while (arr.length < targetLen) arr.push(targetLen === 5 ? special : 0.09)
+        while (arr.length < targetLen) arr.push(0)
       }
-      ensureLen(this.scoreValueJunior, 0.15)
-      ensureLen(this.scoreValueClassic, 0.12)
-      ensureLen(this.scoreValueSenior, 0.09)
-      ensureLen(this.scoreValueSeniorAfterSummer, 0.07)
-      ensureLen(this.scoreValueFinale, 0)
+      ensureLen(this.scoreValueJunior)
+      ensureLen(this.scoreValueClassic)
+      ensureLen(this.scoreValueSenior)
+      ensureLen(this.scoreValueSeniorAfterSummer)
+      ensureLen(this.scoreValueFinale)
     },
     togglePresetMenu() {
       this.showPresetMenu = !this.showPresetMenu;
@@ -3530,6 +3435,7 @@ export default {
           "allow_recover_tp": this.recoverTP,
           "rest_threshold": this.restTreshold,  
           "compensate_failure": this.compensateFailure,
+          "failure_rate_divisor": this.failureRateDivisor,
           "summer_score_threshold": this.summerScoreThreshold,
           "wit_race_search_threshold": this.witRaceSearchThreshold,
           "use_last_parents": this.useLastParents,
@@ -3544,11 +3450,11 @@ export default {
             this.spiritExplosionFinale.map(v => Math.max(-1, Math.min(1, v)))
           ],
           "score_value": [
-            (this.selectedScenario === 2 ? [...this.scoreValueJunior.slice(0,4), this.specialJunior] : this.scoreValueJunior.slice(0,4)),
-            (this.selectedScenario === 2 ? [...this.scoreValueClassic.slice(0,4), this.specialClassic] : this.scoreValueClassic.slice(0,4)),
-            (this.selectedScenario === 2 ? [...this.scoreValueSenior.slice(0,4), this.specialSenior] : this.scoreValueSenior.slice(0,4)),
-            (this.selectedScenario === 2 ? [...this.scoreValueSeniorAfterSummer.slice(0,4), this.specialSeniorAfterSummer] : this.scoreValueSeniorAfterSummer.slice(0,4)),
-            (this.selectedScenario === 2 ? [...this.scoreValueFinale.slice(0,4), this.specialFinale] : this.scoreValueFinale.slice(0,4))
+            (this.selectedScenario === 2 ? [...this.scoreValueJunior, this.specialJunior] : [...this.scoreValueJunior]),
+            (this.selectedScenario === 2 ? [...this.scoreValueClassic, this.specialClassic] : [...this.scoreValueClassic]),
+            (this.selectedScenario === 2 ? [...this.scoreValueSenior, this.specialSenior] : [...this.scoreValueSenior]),
+            (this.selectedScenario === 2 ? [...this.scoreValueSeniorAfterSummer, this.specialSeniorAfterSummer] : [...this.scoreValueSeniorAfterSummer]),
+            (this.selectedScenario === 2 ? [...this.scoreValueFinale, this.specialFinale] : [...this.scoreValueFinale])
           ],
           "stat_value_multiplier": [...this.statValueMultiplier],
           "wit_special_multiplier": [this.witSpecialJunior, this.witSpecialClassic],
@@ -3638,13 +3544,10 @@ export default {
         payload.attachment_data.pal_friendship_score = [0.08, 0.057, 0.018];
         payload.attachment_data.pal_card_multiplier = 0.1;
       }
-      payload.attachment_data.npc_score_value = [
-        [...this.npcScoreJunior],
-        [...this.npcScoreClassic],
-        [...this.npcScoreSenior],
-        [...this.npcScoreSeniorAfterSummer],
-        [...this.npcScoreFinale]
-      ];
+      payload.attachment_data.npc_weight = [...this.npcWeight];
+      payload.attachment_data.friendship_green_discount = this.friendshipGreenDiscount;
+      payload.attachment_data.stat_cap_penalties = this.statCapPenalties.map(p => [...p]);
+      payload.attachment_data.scoring_version = 2;
 
       this.axios.post("/task", payload).then(
         () => {
@@ -3669,6 +3572,7 @@ export default {
         this.summerScoreThreshold = (this.presetsUse.summer_score_threshold !== undefined ? this.presetsUse.summer_score_threshold : 0.17),
         this.witRaceSearchThreshold = (this.presetsUse.wit_race_search_threshold !== undefined ? this.presetsUse.wit_race_search_threshold : 0.08),
       this.compensateFailure = (this.presetsUse.compensate_failure !== false)
+      this.failureRateDivisor = (this.presetsUse.failure_rate_divisor !== undefined ? this.presetsUse.failure_rate_divisor : 50)
       this.useLastParents = (this.presetsUse.use_last_parents === true)
       this.overrideInsufficientFansForcedRaces = (this.presetsUse.override_insufficient_fans_forced_races === true)
       this.learnSkillOnlyUserProvided = !!this.presetsUse.learn_skill_only_user_provided
@@ -3725,18 +3629,10 @@ export default {
       } else {
         this.palCardMultiplier = 0.01
       }
-      if ('npc_score_value' in this.presetsUse && Array.isArray(this.presetsUse.npc_score_value) && this.presetsUse.npc_score_value.length >= 5) {
-        this.npcScoreJunior = [...this.presetsUse.npc_score_value[0]]
-        this.npcScoreClassic = [...this.presetsUse.npc_score_value[1]]
-        this.npcScoreSenior = [...this.presetsUse.npc_score_value[2]]
-        this.npcScoreSeniorAfterSummer = [...this.presetsUse.npc_score_value[3]]
-        this.npcScoreFinale = [...this.presetsUse.npc_score_value[4]]
+      if ('npc_weight' in this.presetsUse && Array.isArray(this.presetsUse.npc_weight)) {
+        this.npcWeight = [...this.presetsUse.npc_weight]
       } else {
-        this.npcScoreJunior = [0.05, 0.05, 0.05]
-        this.npcScoreClassic = [0.05, 0.05, 0.05]
-        this.npcScoreSenior = [0.05, 0.05, 0.05]
-        this.npcScoreSeniorAfterSummer = [0.03, 0.05, 0.05]
-        this.npcScoreFinale = [0, 0, 0.05]
+        this.npcWeight = [5, 5, 5, 3, 0]
       }
       if ('event_overrides' in this.presetsUse && this.presetsUse.event_overrides) {
         this.eventChoicesSelected = { ...this.presetsUse.event_overrides }
@@ -3752,38 +3648,34 @@ export default {
         if (this.presetsUse.scoreValue.length >= 5) {
           this.scoreValueFinale = [...this.presetsUse.scoreValue[4]]
         }
-        
-        // Extract special training values if present (5th element in each array)
+
+        // Extract special training values if present (last element beyond 3)
         if (this.selectedScenario === 2) {
-          if (this.scoreValueJunior.length >= 5) {
-            this.specialJunior = this.scoreValueJunior[4]
-            this.scoreValueJunior = this.scoreValueJunior.slice(0, 4)
+          const extractSpecial = (arr) => {
+            if (arr.length > 3) {
+              const special = arr[arr.length - 1]
+              return { arr: arr.slice(0, arr.length - 1), special }
+            }
+            return { arr, special: undefined }
           }
-          if (this.scoreValueClassic.length >= 5) {
-            this.specialClassic = this.scoreValueClassic[4]
-            this.scoreValueClassic = this.scoreValueClassic.slice(0, 4)
-          }
-          if (this.scoreValueSenior.length >= 5) {
-            this.specialSenior = this.scoreValueSenior[4]
-            this.scoreValueSenior = this.scoreValueSenior.slice(0, 4)
-          }
-          if (this.scoreValueSeniorAfterSummer.length >= 5) {
-            this.specialSeniorAfterSummer = this.scoreValueSeniorAfterSummer[4]
-            this.scoreValueSeniorAfterSummer = this.scoreValueSeniorAfterSummer.slice(0, 4)
-          }
-          if (this.scoreValueFinale.length >= 5) {
-            this.specialFinale = this.scoreValueFinale[4]
-            this.scoreValueFinale = this.scoreValueFinale.slice(0, 4)
-          }
+          let r
+          r = extractSpecial(this.scoreValueJunior); this.scoreValueJunior = r.arr; if (r.special !== undefined) this.specialJunior = r.special
+          r = extractSpecial(this.scoreValueClassic); this.scoreValueClassic = r.arr; if (r.special !== undefined) this.specialClassic = r.special
+          r = extractSpecial(this.scoreValueSenior); this.scoreValueSenior = r.arr; if (r.special !== undefined) this.specialSenior = r.special
+          r = extractSpecial(this.scoreValueSeniorAfterSummer); this.scoreValueSeniorAfterSummer = r.arr; if (r.special !== undefined) this.specialSeniorAfterSummer = r.special
+          r = extractSpecial(this.scoreValueFinale); this.scoreValueFinale = r.arr; if (r.special !== undefined) this.specialFinale = r.special
         }
-        
-        const targetLen = 4;
+
+        const targetLen = 3;
         const arrs = [this.scoreValueJunior, this.scoreValueClassic, this.scoreValueSenior, this.scoreValueSeniorAfterSummer, this.scoreValueFinale]
         arrs.forEach((arr, i) => {
           if (arr.length > targetLen) arr.splice(targetLen)
-          while (arr.length < targetLen) arr.push(0.09)
+          while (arr.length < targetLen) arr.push(0)
         })
       }
+
+      if ('friendship_green_discount' in this.presetsUse) this.friendshipGreenDiscount = this.presetsUse.friendship_green_discount
+      if ('stat_cap_penalties' in this.presetsUse) this.statCapPenalties = this.presetsUse.stat_cap_penalties.map(p => [...p])
 
       if ('baseScore' in this.presetsUse && Array.isArray(this.presetsUse.baseScore)) {
         this.baseScore = [...this.presetsUse.baseScore];
@@ -4037,8 +3929,9 @@ export default {
       this.supportCardLevel = data.follow_support_card_level || this.supportCardLevel;
       this.extraRace = data.extra_race_list || [];
       this.clockUseLimit = data.clock_use_limit !== undefined ? data.clock_use_limit : this.clockUseLimit;
-      this.restTreshold = data.rest_treshold || this.restTreshold;
+      this.restTreshold = data.rest_treshold || data.rest_threshold || this.restTreshold;
       this.compensateFailure = data.compensate_failure !== false;
+      this.failureRateDivisor = data.failure_rate_divisor !== undefined ? data.failure_rate_divisor : this.failureRateDivisor;
       this.summerScoreThreshold = data.summer_score_threshold !== undefined ? data.summer_score_threshold : 0.17;
       this.witRaceSearchThreshold = data.wit_race_search_threshold !== undefined ? data.wit_race_search_threshold : 0.08;
       this.useLastParents = data.use_last_parents === true;
@@ -4070,13 +3963,11 @@ export default {
       }
       if (data.pal_friendship_score) this.palFriendshipScore = [...data.pal_friendship_score];
       if (data.pal_card_multiplier !== undefined) this.palCardMultiplier = data.pal_card_multiplier;
-      if (data.npc_score_value && Array.isArray(data.npc_score_value) && data.npc_score_value.length >= 5) {
-        this.npcScoreJunior = [...data.npc_score_value[0]];
-        this.npcScoreClassic = [...data.npc_score_value[1]];
-        this.npcScoreSenior = [...data.npc_score_value[2]];
-        this.npcScoreSeniorAfterSummer = [...data.npc_score_value[3]];
-        this.npcScoreFinale = [...data.npc_score_value[4]];
+      if (data.npc_weight && Array.isArray(data.npc_weight)) {
+        this.npcWeight = [...data.npc_weight];
       }
+      if (data.friendship_green_discount !== undefined) this.friendshipGreenDiscount = data.friendship_green_discount;
+      if (data.stat_cap_penalties) this.statCapPenalties = data.stat_cap_penalties.map(p => [...p]);
       if (data.extra_weight && data.extra_weight.length >= 3) {
         this.extraWeight1 = data.extra_weight[0].map(v => Math.max(-1, Math.min(1, v)));
         this.extraWeight2 = data.extra_weight[1].map(v => Math.max(-1, Math.min(1, v)));
@@ -4099,13 +3990,38 @@ export default {
         this.scoreValueSenior = [...data.score_value[2]];
         this.scoreValueSeniorAfterSummer = [...data.score_value[3]];
         this.scoreValueFinale = [...data.score_value[4]];
+
+        // Extract special training values if present (last element beyond base 3 or 4)
         if (this.selectedScenario === 2) {
-          if (this.scoreValueJunior.length >= 5) { this.specialJunior = this.scoreValueJunior[4]; this.scoreValueJunior = this.scoreValueJunior.slice(0, 4); }
-          if (this.scoreValueClassic.length >= 5) { this.specialClassic = this.scoreValueClassic[4]; this.scoreValueClassic = this.scoreValueClassic.slice(0, 4); }
-          if (this.scoreValueSenior.length >= 5) { this.specialSenior = this.scoreValueSenior[4]; this.scoreValueSenior = this.scoreValueSenior.slice(0, 4); }
-          if (this.scoreValueSeniorAfterSummer.length >= 5) { this.specialSeniorAfterSummer = this.scoreValueSeniorAfterSummer[4]; this.scoreValueSeniorAfterSummer = this.scoreValueSeniorAfterSummer.slice(0, 4); }
-          if (this.scoreValueFinale.length >= 5) { this.specialFinale = this.scoreValueFinale[4]; this.scoreValueFinale = this.scoreValueFinale.slice(0, 4); }
+          const extractSpecial = (arr) => {
+            if (arr.length > 3) { const s = arr[arr.length - 1]; return { arr: arr.slice(0, arr.length - 1), special: s } }
+            return { arr, special: undefined }
+          }
+          let r
+          r = extractSpecial(this.scoreValueJunior); this.scoreValueJunior = r.arr; if (r.special !== undefined) this.specialJunior = r.special;
+          r = extractSpecial(this.scoreValueClassic); this.scoreValueClassic = r.arr; if (r.special !== undefined) this.specialClassic = r.special;
+          r = extractSpecial(this.scoreValueSenior); this.scoreValueSenior = r.arr; if (r.special !== undefined) this.specialSenior = r.special;
+          r = extractSpecial(this.scoreValueSeniorAfterSummer); this.scoreValueSeniorAfterSummer = r.arr; if (r.special !== undefined) this.specialSeniorAfterSummer = r.special;
+          r = extractSpecial(this.scoreValueFinale); this.scoreValueFinale = r.arr; if (r.special !== undefined) this.specialFinale = r.special;
         }
+
+        // Migrate v1 (4-element) arrays: [lv1, lv2, energy, hint] → [lv1*100, energy*100, hint*100]
+        const migrateScoreArr = (arr) => {
+          if (arr.length === 4) return [Math.round(arr[0] * 100), Math.round(arr[2] * 100), Math.round(arr[3] * 100)]
+          if (arr.length === 3 && arr.every(v => Math.abs(v) < 1)) return arr.map(v => Math.round(v * 100))
+          return arr
+        }
+        this.scoreValueJunior = migrateScoreArr(this.scoreValueJunior);
+        this.scoreValueClassic = migrateScoreArr(this.scoreValueClassic);
+        this.scoreValueSenior = migrateScoreArr(this.scoreValueSenior);
+        this.scoreValueSeniorAfterSummer = migrateScoreArr(this.scoreValueSeniorAfterSummer);
+        this.scoreValueFinale = migrateScoreArr(this.scoreValueFinale);
+
+        // Normalize to 3 elements
+        [this.scoreValueJunior, this.scoreValueClassic, this.scoreValueSenior, this.scoreValueSeniorAfterSummer, this.scoreValueFinale].forEach(arr => {
+          if (arr.length > 3) arr.splice(3);
+          while (arr.length < 3) arr.push(0);
+        });
       }
       if (data.stat_value_multiplier) this.statValueMultiplier = [...data.stat_value_multiplier];
       if (data.wit_special_multiplier && Array.isArray(data.wit_special_multiplier) && data.wit_special_multiplier.length >= 2) {
@@ -4214,6 +4130,7 @@ export default {
         name: this.presetNameEdit,
         event_overrides: this.buildEventChoices(),
         compensate_failure: this.compensateFailure,
+        failure_rate_divisor: this.failureRateDivisor,
         use_last_parents: this.useLastParents,
         override_insufficient_fans_forced_races: this.overrideInsufficientFansForcedRaces,
         scenario: this.selectedScenario,
@@ -4313,13 +4230,10 @@ export default {
 
         pal_friendship_score: [...this.palFriendshipScore],
         pal_card_multiplier: this.palCardMultiplier,
-        npc_score_value: [
-          [...this.npcScoreJunior],
-          [...this.npcScoreClassic],
-          [...this.npcScoreSenior],
-          [...this.npcScoreSeniorAfterSummer],
-          [...this.npcScoreFinale]
-        ],
+        npc_weight: [...this.npcWeight],
+        friendship_green_discount: this.friendshipGreenDiscount,
+        stat_cap_penalties: this.statCapPenalties.map(p => [...p]),
+        scoring_version: 2,
 
         selectedSkills: [...this.selectedSkills],
         blacklistedSkills: [...this.blacklistedSkills],
@@ -4427,6 +4341,7 @@ export default {
         name: 'Shared Preset',
         event_overrides: this.buildEventChoices(),
         compensate_failure: this.compensateFailure,
+        failure_rate_divisor: this.failureRateDivisor,
         use_last_parents: this.useLastParents,
         override_insufficient_fans_forced_races: this.overrideInsufficientFansForcedRaces,
         scenario: this.selectedScenario,
@@ -4473,7 +4388,10 @@ export default {
         pal_card_store: Object.fromEntries(Object.entries(this.palCardStore).filter(([k, v]) => Array.isArray(v) && v.length > 0)),
         pal_friendship_score: [...this.palFriendshipScore],
         pal_card_multiplier: this.palCardMultiplier,
-        npc_score_value: [[...this.npcScoreJunior], [...this.npcScoreClassic], [...this.npcScoreSenior], [...this.npcScoreSeniorAfterSummer], [...this.npcScoreFinale]],
+        npc_weight: [...this.npcWeight],
+        friendship_green_discount: this.friendshipGreenDiscount,
+        stat_cap_penalties: this.statCapPenalties.map(p => [...p]),
+        scoring_version: 2,
         selectedSkills: [...this.selectedSkills],
         blacklistedSkills: [...this.blacklistedSkills],
         skillAssignments: { ...this.skillAssignments },

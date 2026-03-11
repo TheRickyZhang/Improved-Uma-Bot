@@ -63,7 +63,7 @@ def get_logger(name) -> Logger:
     logger = logging.getLogger(name)
     logger.propagate = False
     if not logger.handlers:
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
         fmt = colorlog.ColoredFormatter(
             fmt='%(log_color)s%(asctime)s  %(levelname)-8s [%(funcName)34s] %(filename)-20s: %(message)s',
             log_colors=log_colors_config

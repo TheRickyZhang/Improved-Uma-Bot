@@ -8,9 +8,11 @@ from module.umamusume.define import *
 from module.umamusume.types import TurnInfo
 from module.umamusume.constants.scoring_constants import (
     DEFAULT_BASE_SCORES, DEFAULT_SPIRIT_EXPLOSION, DEFAULT_PAL_FRIENDSHIP_SCORES,
-    DEFAULT_PAL_CARD_MULTIPLIER, DEFAULT_NPC_SCORE_VALUE,
+    DEFAULT_PAL_CARD_MULTIPLIER, DEFAULT_NPC_WEIGHT,
     DEFAULT_SUMMER_SCORE_THRESHOLD, DEFAULT_STAT_VALUE_MULTIPLIER,
-    DEFAULT_WIT_SPECIAL_MULTIPLIER
+    DEFAULT_WIT_SPECIAL_MULTIPLIER, DEFAULT_SCORE_VALUE,
+    DEFAULT_FRIENDSHIP_GREEN_DISCOUNT, DEFAULT_FAILURE_RATE_DIVISOR,
+    DEFAULT_STAT_CAP_PENALTIES
 )
 import bot.base.log as logger
 
@@ -90,7 +92,6 @@ class CultivateContextDetail:
     pal_name: str
     pal_friendship_score: list[float]
     pal_card_multiplier: float
-    npc_score_value: list
     base_score: list
     summer_score_threshold: float
     stat_value_multiplier: list
@@ -130,11 +131,13 @@ class CultivateContextDetail:
         self.pal_name = ""
         self.pal_friendship_score = list(DEFAULT_PAL_FRIENDSHIP_SCORES)
         self.pal_card_multiplier = DEFAULT_PAL_CARD_MULTIPLIER
-        self.npc_score_value = [list(row) for row in DEFAULT_NPC_SCORE_VALUE]
+        self.npc_weight = list(DEFAULT_NPC_WEIGHT)
         self.base_score = list(DEFAULT_BASE_SCORES)
         self.summer_score_threshold = DEFAULT_SUMMER_SCORE_THRESHOLD
         self.stat_value_multiplier = list(DEFAULT_STAT_VALUE_MULTIPLIER)
         self.wit_special_multiplier = list(DEFAULT_WIT_SPECIAL_MULTIPLIER)
+        self.friendship_green_discount = DEFAULT_FRIENDSHIP_GREEN_DISCOUNT
+        self.stat_cap_penalties = list(DEFAULT_STAT_CAP_PENALTIES)
 
     def reset_skill_learn(self):
         self.learn_skill_done = False
@@ -192,8 +195,7 @@ def build_context(task: UmamusumeTask, ctrl) -> UmamusumeContext:
         except Exception:
             detail.spirit_explosion = list(DEFAULT_SPIRIT_EXPLOSION)
         
-        # Support both spellings for backward compatibility (rest_threshold is correct)
-        detail.rest_threshold = getattr(task.detail, 'rest_threshold', getattr(task.detail, 'rest_treshold', getattr(task.detail, 'fast_path_energy_limit', 48)))
+        detail.rest_threshold = getattr(task.detail, 'rest_threshold', 48)
         detail.motivation_threshold_year1 = int(getattr(task.detail, 'motivation_threshold_year1', 3))
         detail.motivation_threshold_year2 = int(getattr(task.detail, 'motivation_threshold_year2', 4))
         detail.motivation_threshold_year3 = int(getattr(task.detail, 'motivation_threshold_year3', 4))
@@ -203,26 +205,18 @@ def build_context(task: UmamusumeTask, ctrl) -> UmamusumeContext:
 
         detail.pal_friendship_score = list(getattr(task.detail, 'pal_friendship_score', DEFAULT_PAL_FRIENDSHIP_SCORES))
         detail.pal_card_multiplier = float(getattr(task.detail, 'pal_card_multiplier', DEFAULT_PAL_CARD_MULTIPLIER))
-        npc_sv = getattr(task.detail, 'npc_score_value', None)
-        if npc_sv and isinstance(npc_sv, list):
-            detail.npc_score_value = [list(row) for row in npc_sv]
-        else:
-            detail.npc_score_value = [list(row) for row in DEFAULT_NPC_SCORE_VALUE]
+        detail.npc_weight = list(getattr(task.detail, 'npc_weight', DEFAULT_NPC_WEIGHT))
 
-        detail.score_value = getattr(task.detail, 'score_value', [
-            [0.11, 0.10, 0.01, 0.09],
-            [0.11, 0.10, 0.09, 0.09],
-            [0.11, 0.10, 0.12, 0.09],
-            [0.03, 0.05, 0.15, 0.09],
-            [0, 0, 0.27, 0, 0]
-        ])
+        detail.score_value = getattr(task.detail, 'score_value', list(DEFAULT_SCORE_VALUE))
+        detail.friendship_green_discount = float(getattr(task.detail, 'friendship_green_discount', DEFAULT_FRIENDSHIP_GREEN_DISCOUNT))
         detail.compensate_failure = getattr(task.detail, 'compensate_failure', True)
-        detail.failure_rate_divisor = float(getattr(task.detail, 'failure_rate_divisor', 50.0))
+        detail.failure_rate_divisor = float(getattr(task.detail, 'failure_rate_divisor', DEFAULT_FAILURE_RATE_DIVISOR))
         detail.use_last_parents = getattr(task.detail, 'use_last_parents', False)
         detail.base_score = list(getattr(task.detail, 'base_score', DEFAULT_BASE_SCORES))
         detail.summer_score_threshold = float(getattr(task.detail, 'summer_score_threshold', DEFAULT_SUMMER_SCORE_THRESHOLD))
         detail.stat_value_multiplier = list(getattr(task.detail, 'stat_value_multiplier', DEFAULT_STAT_VALUE_MULTIPLIER))
         detail.wit_special_multiplier = list(getattr(task.detail, 'wit_special_multiplier', DEFAULT_WIT_SPECIAL_MULTIPLIER))
+        detail.stat_cap_penalties = list(getattr(task.detail, 'stat_cap_penalties', DEFAULT_STAT_CAP_PENALTIES))
         detail.skip_double_circle_unless_high_hint = getattr(task.detail, 'skip_double_circle_unless_high_hint', False)
         detail.hint_boost_characters = list(getattr(task.detail, 'hint_boost_characters', []))
         detail.hint_boost_multiplier = int(getattr(task.detail, 'hint_boost_multiplier', 100))

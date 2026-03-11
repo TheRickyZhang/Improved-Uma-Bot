@@ -89,7 +89,7 @@ class Scheduler:
                     if cleanup_counter >= 60:
                         self.cleanup_completed_tasks()
                         cleanup_counter = 0
-                    if cleanup_counter <= 3:
+                    if cleanup_counter % 60 == 1:
                         log.info("Scheduler tick: active=%s, tasks=%d, executor_active=%s",
                                  self.active, len(self.task_list), task_executor.active)
                         for t in self.task_list:

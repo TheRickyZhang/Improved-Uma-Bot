@@ -302,7 +302,7 @@ def parse_date(img, ctx: UmamusumeContext) -> int:
         date_text = ocr_line(sub_img_date)
         
         # Debug: Log the extracted date text
-        log.info(f"🔍 Extracted date text: '{date_text}'")
+        log.debug(f"Extracted date text: '{date_text}'")
         
         year_text = ""
         for text in DATE_YEAR:
@@ -311,7 +311,7 @@ def parse_date(img, ctx: UmamusumeContext) -> int:
 
         if year_text == "":
             year_text = find_similar_text(date_text, DATE_YEAR)
-            log.info(f"🔍 Similar text found: '{year_text}'")
+            log.debug(f"Similar text found: '{year_text}'")
 
         if year_text == DATE_YEAR[3]:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -359,27 +359,27 @@ def parse_date(img, ctx: UmamusumeContext) -> int:
         date_text = ocr_line(sub_img_date)
         
         # Debug: Log the extracted date text for URA
-        log.info(f"🔍 URA Extracted date text: '{date_text}'")
+        log.debug(f"URA Extracted date text: '{date_text}'")
         
         # Special handling for "Finale Season" in URA championship
         if "Finale Season" in date_text or "Finale" in date_text:
-            log.info("🏆 URA Finale Season detected - checking championship phase")
+            log.debug("URA Finale Season detected - checking championship phase")
             
             # Check specific coordinates for URA championship phase text
             championship_phase_img = img[74:100, 250:575]  # x: 250, y: 74, width: 325, height: 26
             championship_phase_img = cv2.copyMakeBorder(championship_phase_img, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None, (255, 255, 255))
             championship_phase_text = ocr_line(championship_phase_img)
-            log.info(f"🔍 URA Championship phase text: '{championship_phase_text}'")
+            log.debug(f"URA Championship phase text: '{championship_phase_text}'")
             
             # Determine URA championship phase based on OCR text
             if "URA Finale Qualifier" in championship_phase_text or "Qualifier" in championship_phase_text:
-                log.info("🏆 URA Finals Qualifier detected")
+                log.debug("URA Finals Qualifier detected")
                 return 73  # Qualifier date
             elif "URA Finale Semifinal" in championship_phase_text or "Semifinal" in championship_phase_text:
-                log.info("🏆 URA Finals Semifinal detected")
+                log.debug("URA Finals Semifinal detected")
                 return 76  # Semi-final date
             elif "URA Finale Finals" in championship_phase_text or "Finals" in championship_phase_text:
-                log.info("🏆 URA Finals Final detected")
+                log.debug("URA Finals Final detected")
                 return 79  # Final date
             else:
                 log.warning(f"❌ Unknown URA championship phase: '{championship_phase_text}'")
@@ -393,7 +393,7 @@ def parse_date(img, ctx: UmamusumeContext) -> int:
 
         if year_text == "":
             year_text = find_similar_text(date_text, DATE_YEAR)
-            log.info(f"🔍 URA Similar text found: '{year_text}'")
+            log.debug(f"URA Similar text found: '{year_text}'")
 
         if year_text == DATE_YEAR[3]:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -683,7 +683,7 @@ def find_support_card(ctx: UmamusumeContext, img):
                 continue
             cleaned_level = DIGITS_ONLY.sub("", support_card_level_text)
             if cleaned_level == "":
-                log.info("Skipping card")
+                log.debug("Skipping card")
                 continue
             support_card_level = int(cleaned_level)
             if support_card_level < ctx.cultivate_detail.follow_support_card_level:
@@ -880,8 +880,8 @@ def find_race(ctx: UmamusumeContext, img, race_id: int = 0) -> bool:
     img_height, img_width = img.shape
     
     if target_race_template is not None:
-        log.info(f"Looking for race ID {race_id}: {RACE_LIST[race_id][1]}")
-        log.info(f"Template exists: {target_race_template is not None}")
+        log.debug(f"Looking for race ID {race_id}: {RACE_LIST[race_id][1]}")
+        log.debug(f"Template exists: {target_race_template is not None}")
     else:
         log.warning(f"No template found for race ID {race_id}")
         return False
@@ -915,7 +915,7 @@ def find_race(ctx: UmamusumeContext, img, race_id: int = 0) -> bool:
                         template_success = template_match.find_match
                         
                         if template_success:
-                            log.info(f"Template match successful for race {race_id}")
+                            log.debug(f"Template match successful for race {race_id}")
                         else:
                             log.debug(f"Template match failed for race {race_id}")
                             
@@ -929,7 +929,7 @@ def find_race(ctx: UmamusumeContext, img, race_id: int = 0) -> bool:
                                 preprocessed_match = image_match(race_name_img, temp_template)
                                 if preprocessed_match.find_match:
                                     template_success = True
-                                    log.info(f"✅ Preprocessed template match successful for race {race_id}")
+                                    log.debug(f"Preprocessed template match successful for race {race_id}")
                                 else:
                                     log.debug(f"❌ Preprocessed template match also failed for race {race_id}")
                             except Exception as e:
@@ -939,7 +939,7 @@ def find_race(ctx: UmamusumeContext, img, race_id: int = 0) -> bool:
                         ocr_race_id = None
                         try:
                             race_name_text = ocr_line(race_name_img)
-                            log.info(f"🔍 OCR extracted text: '{race_name_text}'")
+                            log.debug(f"OCR extracted text: '{race_name_text}'")
                             
                             # Try to find which race ID this OCR text corresponds to
                             # Search through all races to find a match
@@ -956,7 +956,7 @@ def find_race(ctx: UmamusumeContext, img, race_id: int = 0) -> bool:
                                 
                                 if csv_match or ingame_match:
                                     ocr_race_id = search_race_id
-                                    log.info(f"OCR identified race ID: {ocr_race_id} ({RACE_LIST[ocr_race_id][1]})")
+                                    log.debug(f"OCR identified race ID: {ocr_race_id} ({RACE_LIST[ocr_race_id][1]})")
                                     break
                                     
                         except Exception as e:
@@ -1039,7 +1039,7 @@ def find_skill(ctx: UmamusumeContext, img, skill: list[str], learn_any_skill: bo
                     except Exception:
                         pass
                     circle_label = {0: "", 1: " ○", 2: " ◎"}[circle_type]
-                    log.info(f"detected text='{detected_text}' matched skill='{matched_skill}' Hint: lv {hint_level}{circle_label}")
+                    log.debug(f"detected text='{detected_text}' matched skill='{matched_skill}' Hint: lv {hint_level}{circle_label}")
                     log_detected_skill(name_for_match, "menu", hint_level=hint_level)
                     target_match = None
                     for target in skill:
@@ -1077,12 +1077,12 @@ def find_skill(ctx: UmamusumeContext, img, skill: list[str], learn_any_skill: bo
                             log.debug(f"find_skill - Points: {pt}, Cost: {skill_pt_cost}, Can buy: {pt >= skill_pt_cost}")
                             
                             if pt >= skill_pt_cost:
-                                log.info(f"Buying skill '{detected_text}' - Points: {pt}, Cost: {skill_pt_cost}")
+                                log.debug(f"Buying skill '{detected_text}' - Points: {pt}, Cost: {skill_pt_cost}")
                                 ctx.ctrl.click(match_result.center_point[0] + 128, match_result.center_point[1],
                                                "Bonus Skills：" + detected_text)
                                 if target_match is not None and target_match in skill:
                                     skill.remove(target_match)
-                                    log.info(f"Removed '{target_match}' from skill list. Remaining: {skill}")
+                                    log.debug(f"Removed '{target_match}' from skill list. Remaining: {skill}")
                                 elif target_match is not None:
                                     log.warning(f"Skill '{target_match}' not found in skill list: {skill}")
                                 ctx.cultivate_detail.learn_skill_selected = True

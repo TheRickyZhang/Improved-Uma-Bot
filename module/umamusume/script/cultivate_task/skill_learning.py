@@ -176,7 +176,7 @@ def script_follow_support_card_select(ctx: UmamusumeContext):
                 y1c = max(0, min(h, y1)); y2c = max(y1c, min(h, y2))
                 roi = img_gray_chk[y1c:y2c, x1c:x2c]
                 if not image_match(roi, REF_BORROW_CARD).find_match:
-                    log.info("Incorrect ui stopping card search")
+                    log.debug("Incorrect ui stopping card search")
                     return
             except Exception:
                 pass
@@ -193,7 +193,7 @@ def script_follow_support_card_select(ctx: UmamusumeContext):
                 y1c = max(0, min(h, y1)); y2c = max(y1c, min(h, y2))
                 roi = img_gray_chk[y1c:y2c, x1c:x2c]
                 if not image_match(roi, REF_BORROW_CARD).find_match:
-                    log.info("Incorrect ui stopping card search")
+                    log.debug("Incorrect ui stopping card search")
                     return
             except Exception:
                 pass
@@ -346,15 +346,15 @@ def script_cultivate_learn_skill(ctx: UmamusumeContext):
             learn_skill_list = ctx.cultivate_detail.learn_skill_list
 
     try:
-        log.info("Priority list:")
+        log.debug("Priority list:")
         if isinstance(learn_skill_list, list):
             for idx, plist in enumerate(learn_skill_list):
                 try:
-                    log.info(f"  priority {idx}: {', '.join(plist) if plist else ''}")
+                    log.debug(f"  priority {idx}: {', '.join(plist) if plist else ''}")
                 except Exception:
                     pass
         bl = ctx.cultivate_detail.learn_skill_blacklist or []
-        log.info(f"Blacklist: {', '.join(bl) if bl else ''}")
+        log.debug(f"Blacklist: {', '.join(bl) if bl else ''}")
     except Exception:
         pass
 
@@ -568,7 +568,7 @@ def script_cultivate_learn_skill(ctx: UmamusumeContext):
                 curr_point += skill_cost
                 target_skill_list.append(skill_name)
                 target_skill_list_raw.append(skill_name_raw)
-                log.info(f"Added skill '{skill_name}' to target list (cost: {skill_cost}, total spent: {curr_point})")
+                log.debug(f"Added skill '{skill_name}' to target list (cost: {skill_cost}, total spent: {curr_point})")
                 
                 if skill["gold"] is True and skill["subsequent_skill"] != '':
                     for k in range(len(skill_list)):

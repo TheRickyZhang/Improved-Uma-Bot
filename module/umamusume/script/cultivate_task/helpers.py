@@ -60,9 +60,9 @@ def should_use_pal_outing_simple(ctx: UmamusumeContext):
     mood_below = current_mood <= mood_threshold
     energy_below = current_energy <= energy_threshold
 
-    log.info(f"PAL outing check - Stage {stage}:")
-    log.info(f"Mood: {current_mood} vs {mood_threshold} - {'<=' if mood_below else '>'}")
-    log.info(f"Energy: {current_energy} vs {energy_threshold} - {'<=' if energy_below else '>'}")
+    log.debug(f"PAL outing check - Stage {stage}:")
+    log.debug(f"Mood: {current_mood} vs {mood_threshold} - {'<=' if mood_below else '>'}")
+    log.debug(f"Energy: {current_energy} vs {energy_threshold} - {'<=' if energy_below else '>'}")
 
     should_outing = mood_below and energy_below
     if should_outing:

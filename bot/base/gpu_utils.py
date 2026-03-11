@@ -22,7 +22,7 @@ def detect_gpu_capabilities():
         import paddle
         
         if not paddle.device.is_compiled_with_cuda():
-            log.warning("GPU acceleration disabled: PaddlePaddle not compiled with CUDA support")
+            log.info("GPU acceleration disabled: PaddlePaddle not compiled with CUDA support")
             _GPU_AVAILABLE = False
             return False
         

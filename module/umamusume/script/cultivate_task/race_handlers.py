@@ -63,7 +63,7 @@ def script_cultivate_goal_race(ctx: UmamusumeContext):
 
 
 def script_cultivate_race_list(ctx: UmamusumeContext):
-    log.info("Entered Race List menu (CULTIVATE_RACE_LIST)")
+    log.debug("Entered Race List menu (CULTIVATE_RACE_LIST)")
     time.sleep(DIALOG_WAIT)
     if ctx.cultivate_detail.turn_info is None:
         log.warning("Turn information not initialized")
@@ -75,7 +75,7 @@ def script_cultivate_race_list(ctx: UmamusumeContext):
         race_id = turn_op.race_id
 
         if race_id == 0:
-            log.info("Suitable race search mode")
+            log.debug("Suitable race search mode")
             time.sleep(DIALOG_WAIT)
 
             img_gray = ctx.ctrl.get_screen(to_gray=True)
@@ -102,7 +102,7 @@ def script_cultivate_race_list(ctx: UmamusumeContext):
     goal_match = image_match(img, REF_RACE_LIST_GOAL_RACE).find_match
     ura_match = image_match(img, REF_RACE_LIST_URA_RACE).find_match
     
-    log.info(f"Template matching - Goal Race: {goal_match}, URA Race: {ura_match}")
+    log.debug(f"Template matching - Goal Race: {goal_match}, URA Race: {ura_match}")
     
     if goal_match:
         log.info("Found Goal Race - clicking to enter detail interface")
@@ -116,10 +116,10 @@ def script_cultivate_race_list(ctx: UmamusumeContext):
             ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
             return
         else:
-            log.info(f"Turn operation type: {ctx.cultivate_detail.turn_info.turn_operation.turn_operation_type}")
+            log.debug(f"Turn operation type: {ctx.cultivate_detail.turn_info.turn_operation.turn_operation_type}")
             if ctx.cultivate_detail.turn_info.turn_operation.turn_operation_type == TurnOperationType.TURN_OPERATION_TYPE_RACE:
                 race_id = ctx.cultivate_detail.turn_info.turn_operation.race_id
-                log.info(f"Race operation with ID: {race_id}")
+                log.debug(f"Race operation with ID: {race_id}")
                 if race_id in [2381, 2382, 2385, 2386, 2387] or race_id == 0:
                     log.info("Detected URA race operation - clicking race button directly")
                     ctx.ctrl.click(319, 1082, "URA Race Button")
@@ -160,10 +160,10 @@ def script_cultivate_race_list(ctx: UmamusumeContext):
                     ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
                     return
                 race_id = ctx.cultivate_detail.turn_info.turn_operation.race_id
-                log.info(f"Looking for race ID: {race_id}")
+                log.debug(f"Looking for race ID: {race_id}")
                 selected = find_race(ctx, img, race_id)
                 if selected:
-                    log.info(f"Found race ID: {race_id}")
+                    log.debug(f"Found race ID: {race_id}")
                     if hasattr(ti, 'race_search_started_at'):
                         delattr(ti, 'race_search_started_at')
                     if hasattr(ti, 'race_search_id'):

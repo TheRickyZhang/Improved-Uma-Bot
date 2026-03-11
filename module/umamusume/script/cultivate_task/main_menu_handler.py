@@ -77,19 +77,19 @@ def script_cultivate_main_menu(ctx: UmamusumeContext):
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             from module.umamusume.asset.template import UI_RECREATION_FRIEND_NOTIFICATION
             result = image_match(img_gray, UI_RECREATION_FRIEND_NOTIFICATION)
-            log.info(f"Recreation friend notification detection: {result.find_match}")
+            log.debug(f"Recreation friend notification detection: {result.find_match}")
             
             need_detection = False
             if result.find_match:
                 last_detection_date = getattr(ctx.cultivate_detail, 'pal_last_detection_date', -1)
                 if last_detection_date != current_date:
                     need_detection = True
-                    log.info(f"Notification present - need detection (last: {last_detection_date}, now: {current_date})")
+                    log.debug(f"Notification present - need detection (last: {last_detection_date}, now: {current_date})")
                 else:
-                    log.info(f"Stage {ctx.cultivate_detail.pal_event_stage} already detected for date {current_date}")
+                    log.debug(f"Stage {ctx.cultivate_detail.pal_event_stage} already detected for date {current_date}")
             else:
                 if ctx.cultivate_detail.pal_event_stage > 0:
-                    log.info("Notification absent - resetting stage to 0")
+                    log.debug("Notification absent - resetting stage to 0")
                     ctx.cultivate_detail.pal_event_stage = 0
                     if hasattr(ctx.cultivate_detail, 'pal_last_detection_date'):
                         delattr(ctx.cultivate_detail, 'pal_last_detection_date')
@@ -106,10 +106,10 @@ def script_cultivate_main_menu(ctx: UmamusumeContext):
                 
                 pal_thresholds = ctx.cultivate_detail.pal_thresholds
                 if pal_thresholds and calculated_stage <= len(pal_thresholds):
-                    log.info(f"STAGE DETECTED: {calculated_stage}")
+                    log.debug(f"STAGE DETECTED: {calculated_stage}")
                     thresholds = pal_thresholds[calculated_stage - 1]
                     mood, energy, score = thresholds
-                    log.info(f"Stage {calculated_stage} thresholds - Mood: {mood}, Energy: {energy}, Score: {score}")
+                    log.debug(f"Stage {calculated_stage} thresholds - Mood: {mood}, Energy: {energy}, Score: {score}")
 
                 ctx.ctrl.click(5, 5)
                 time.sleep(SCROLL_DELAY)

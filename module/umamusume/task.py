@@ -25,7 +25,6 @@ class TaskDetail:
     manual_purchase_at_end: bool
     override_insufficient_fans_forced_races: bool
     use_last_parents: bool
-    # Motivation thresholds for trip logic
     motivation_threshold_year1: int
     motivation_threshold_year2: int
     motivation_threshold_year3: int
@@ -36,6 +35,7 @@ class TaskDetail:
     pal_card_multiplier: float
     score_value: list
     compensate_failure: bool
+    failure_rate_divisor: float
     base_score: list
     event_weights: dict
     scenario_config: ScenarioConfig
@@ -46,6 +46,9 @@ class TaskDetail:
     hint_boost_characters: list[str]
     hint_boost_multiplier: int
     friendship_score_groups: list
+    friendship_green_discount: float
+    npc_weight: list
+    stat_cap_penalties: list
 
 
 class EndTaskReason(Enum):
@@ -91,17 +94,18 @@ def build_task(task_execute_mode: TaskExecuteMode, task_type: int,
     td.learn_skill_only_user_provided = attachment_data['learn_skill_only_user_provided']
     td.allow_recover_tp = attachment_data['allow_recover_tp']
     td.extra_weight = attachment_data['extra_weight']
-    td.spirit_explosion = attachment_data.get('spirit_explosion', [0.16, 0.16, 0.16, 0.06, 0.11])
+    td.spirit_explosion = attachment_data.get('spirit_explosion', [16, 16, 16, 6, 11])
     td.compensate_failure = attachment_data.get('compensate_failure', True)
+    td.failure_rate_divisor = float(attachment_data.get('failure_rate_divisor', 50.0))
     td.manual_purchase_at_end = attachment_data['manual_purchase_at_end']
     td.override_insufficient_fans_forced_races = attachment_data.get('override_insufficient_fans_forced_races', False)
     td.use_last_parents = attachment_data.get('use_last_parents', False)
     td.cure_asap_conditions = attachment_data.get("cure_asap_conditions", "")
     td.rest_threshold = attachment_data.get('rest_threshold', 48)
 
-    td.summer_score_threshold = attachment_data.get('summer_score_threshold', 0.34)
-    td.wit_race_search_threshold = attachment_data.get('wit_race_search_threshold', 0.15)
-    
+    td.summer_score_threshold = attachment_data.get('summer_score_threshold', 34)
+    td.wit_race_search_threshold = attachment_data.get('wit_race_search_threshold', 15)
+
     td.motivation_threshold_year1 = attachment_data.get('motivation_threshold_year1', 3)
     td.motivation_threshold_year2 = attachment_data.get('motivation_threshold_year2', 4)
     td.motivation_threshold_year3 = attachment_data.get('motivation_threshold_year3', 4)
@@ -111,26 +115,21 @@ def build_task(task_execute_mode: TaskExecuteMode, task_type: int,
         td.pal_thresholds = []
     td.prioritize_recreation = attachment_data.get('prioritize_recreation', False) and len(td.pal_thresholds) > 0
 
-    td.pal_friendship_score = attachment_data.get('pal_friendship_score', [0.08, 0.057, 0.018])
-    td.pal_card_multiplier = attachment_data.get('pal_card_multiplier', 0.1)
-    td.npc_score_value = attachment_data.get('npc_score_value', [
-        [0.05, 0.05, 0.05],
-        [0.05, 0.05, 0.05],
-        [0.05, 0.05, 0.05],
-        [0.03, 0.05, 0.05],
-        [0, 0, 0.05]
-    ])
+    td.pal_friendship_score = attachment_data.get('pal_friendship_score', [8.0, 5.7, 1.8])
+    td.pal_card_multiplier = attachment_data.get('pal_card_multiplier', 10)
+    td.npc_weight = attachment_data.get('npc_weight', [5, 5, 5, 3, 0])
 
     td.score_value = attachment_data.get('score_value', [
-        [0.11, 0.10, 0.01, 0.09],
-        [0.11, 0.10, 0.09, 0.09],
-        [0.11, 0.10, 0.12, 0.09],
-        [0.03, 0.05, 0.15, 0.09],
-        [0, 0, 0.15, 0, 0]
+        [11, 0.6, 9],
+        [11, 0.6, 9],
+        [11, 0.6, 9],
+        [3, 0.6, 9],
+        [0, 0.6, 0],
     ])
-    
-    td.base_score = attachment_data.get('base_score', [0.0, 0.0, 0.0, 0.0, 0.07])
-    
+    td.friendship_green_discount = float(attachment_data.get('friendship_green_discount', 10))
+
+    td.base_score = attachment_data.get('base_score', [0.0, 0.0, 0.0, 0.0, 0.0])
+
     td.cultivate_result = {}
     td.scenario_config = ScenarioConfig(
         ura_config = None if (attachment_data.get('ura_config') is None) else UraConfig(attachment_data['ura_config']),
@@ -141,7 +140,7 @@ def build_task(task_execute_mode: TaskExecuteMode, task_type: int,
         td.event_overrides = eo if isinstance(eo, dict) else {}
     except Exception:
         td.event_overrides = {}
-    
+
     try:
         ew = attachment_data.get('event_weights', None)
         td.event_weights = ew if isinstance(ew, dict) else None
@@ -149,11 +148,14 @@ def build_task(task_execute_mode: TaskExecuteMode, task_type: int,
         td.event_weights = None
 
     td.do_tt_next = attachment_data.get('do_tt_next', False)
-    td.wit_special_multiplier = attachment_data.get('wit_special_multiplier', [1.57, 1.37])
+    td.wit_special_multiplier = attachment_data.get('wit_special_multiplier', [1.0, 1.0])
     td.skip_double_circle_unless_high_hint = attachment_data.get('skip_double_circle_unless_high_hint', False)
     td.hint_boost_characters = attachment_data.get('hint_boost_characters', [])
     td.hint_boost_multiplier = int(attachment_data.get('hint_boost_multiplier', 100))
     td.friendship_score_groups = attachment_data.get('friendship_score_groups', [])
-    
+    td.stat_value_multiplier = attachment_data.get('stat_value_multiplier', [1.0, 1.0, 1.0, 1.0, 1.0, 0.5])
+    td.stat_cap_penalties = attachment_data.get('stat_cap_penalties', [
+        [95, 0], [90, 70], [80, 80], [70, 90]
+    ])
     ut.detail = td
     return ut
