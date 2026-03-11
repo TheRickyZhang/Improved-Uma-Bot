@@ -1,0 +1,21 @@
+bot:
+  auto:
+    adb:
+      delay: 2.0
+      device_name: 192.168.240.112:5555
+    cpu_alloc: 4
+  gpu:
+    device_id: 0
+    enabled: auto
+    memory_fraction: 0.3
+  timing:
+    detection_delay: 0.005
+    dialog_wait: 1.0
+    long_wait: 2.0
+    recovery_delay: 1.0
+    retry_delay: 0.12
+    screencap_retry: 0.1
+    scroll_delay: 0.15
+    tap_delay: 0.5
+    tap_extra_delay: 0.25
+version: 0.0.1
