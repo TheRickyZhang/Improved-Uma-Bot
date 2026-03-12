@@ -4,6 +4,7 @@ import cv2
 from module.umamusume.asset.template import UI_CULTIVATE_URA_RACE_1, UI_CULTIVATE_URA_RACE_2, UI_CULTIVATE_URA_RACE_3
 from bot.recog.image_matcher import image_match
 from bot.conn.fetch import fetch_state
+from module.umamusume.constants.scoring_constants import DEFAULT_SUMMER_SCORE_THRESHOLD
 log = logger.get_logger(__name__)
 
 _race_cache = {}
@@ -392,7 +393,7 @@ def get_operation(ctx: UmamusumeContext) -> TurnOperation | None:
                 best_score = training_score[best_idx] if len(training_score) == 5 else 0.0
             except Exception:
                 best_score = 0.0
-            summer_threshold = getattr(ctx.cultivate_detail, 'summer_score_threshold', 0.34)
+            summer_threshold = getattr(ctx.cultivate_detail, 'summer_score_threshold', DEFAULT_SUMMER_SCORE_THRESHOLD)
             if best_score < summer_threshold:
                 log.info(f"Low training score before summer, conserving energy (score < {summer_threshold:.2f})")
                 if energy < SUMMER_CONSERVE_ENERGY:

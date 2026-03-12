@@ -59,6 +59,7 @@ _LIVE_SAFE_FIELDS = (
     "rest_threshold",
     "score_value",
     "skip_double_circle_unless_high_hint",
+    "special_training",
     "spirit_explosion",
     "stat_cap_penalties",
     "stat_value_multiplier",

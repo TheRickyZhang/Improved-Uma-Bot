@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "strict": false,
+    "resolveJsonModule": true,
+    "types": ["vite/client"]
+  },
+  "vueCompilerOptions": {
+    "strictTemplates": false
+  },
+  "include": [
+    "src/env.d.ts",
+    "src/components/TaskEditModal.vue",
+    "src/shared/**/*.ts"
+  ]
+}

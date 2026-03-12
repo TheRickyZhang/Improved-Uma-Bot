@@ -588,19 +588,19 @@
                         <div class="col-4">
                           <div class="form-group">
                             <label for="pal-blue-score">Blue</label>
-                            <input type="number" step="0.001" v-model.number="palFriendshipScore[0]" class="form-control form-control-sm" id="pal-blue-score" min="0" max="1">
+                            <input type="number" step="0.1" v-model.number="palFriendshipScore[0]" class="form-control form-control-sm" id="pal-blue-score" min="0" max="50">
                           </div>
                         </div>
                         <div class="col-4">
                           <div class="form-group">
                             <label for="pal-green-score">Green</label>
-                            <input type="number" step="0.001" v-model.number="palFriendshipScore[1]" class="form-control form-control-sm" id="pal-green-score" min="0" max="1">
+                            <input type="number" step="0.1" v-model.number="palFriendshipScore[1]" class="form-control form-control-sm" id="pal-green-score" min="0" max="50">
                           </div>
                         </div>
                         <div class="col-4">
                           <div class="form-group">
                             <label for="pal-maxed-score">Maxed</label>
-                            <input type="number" step="0.001" v-model.number="palFriendshipScore[2]" class="form-control form-control-sm" id="pal-maxed-score" min="0" max="1">
+                            <input type="number" step="0.1" v-model.number="palFriendshipScore[2]" class="form-control form-control-sm" id="pal-maxed-score" min="0" max="50">
                           </div>
                         </div>
                       </div>
@@ -612,8 +612,8 @@
                         <div class="col-4">
                           <div class="form-group">
                             <div class="input-group input-group-sm">
-                              <input type="number" step="0.01" v-model.number="palCardMultiplier" class="form-control" id="pal-card-multi" min="0" max="1">
-                              <span class="input-group-text">{{ (palCardMultiplier * 100).toFixed(0) }}%</span>
+                              <input type="number" step="0.1" v-model.number="palCardMultiplier" class="form-control" id="pal-card-multi" min="0" max="100">
+                              <span class="input-group-text">{{ palCardMultiplier.toFixed(1) }}%</span>
                             </div>
                           </div>
                         </div>
@@ -660,7 +660,7 @@
                   </div>
                   <div v-if="hintBoostCharacters.length" class="hint-boost-selected mb-2">
                     <div v-for="name in hintBoostCharacters" :key="'sel-'+name" class="hint-chip selected" @click="toggleHintBoostCharacter(name)">
-                      <img :src="'/training-icon/' + encodeURIComponent(name)" class="hint-chip-icon" loading="lazy" @error="$event.target.style.display='none'">
+                      <img :src="'/training-icon/' + encodeURIComponent(name)" class="hint-chip-icon" loading="lazy" @error="handleImageLoadError">
                       <span>{{ name }}</span>
                       <i class="fas fa-times hint-chip-remove"></i>
                     </div>
@@ -669,7 +669,7 @@
                     <div v-for="name in filteredHintCharacters" :key="name"
                       class="hint-char-item" :class="{ selected: hintBoostCharacters.includes(name) }"
                       @click="toggleHintBoostCharacter(name)">
-                      <img :src="'/training-icon/' + encodeURIComponent(name)" class="hint-char-icon" loading="lazy" @error="$event.target.style.display='none'">
+                      <img :src="'/training-icon/' + encodeURIComponent(name)" class="hint-char-icon" loading="lazy" @error="handleImageLoadError">
                       <span class="hint-char-name">{{ name }}</span>
                     </div>
                   </div>
@@ -714,7 +714,7 @@
                   </div>
                   <div v-if="fsg.characters.length" class="hint-boost-selected mb-2">
                     <div v-for="name in fsg.characters" :key="'fsg-sel-'+fsgIdx+'-'+name" class="hint-chip selected" @click="toggleFsgCharacter(fsgIdx, name)">
-                      <img :src="'/training-icon/' + encodeURIComponent(name)" class="hint-chip-icon" loading="lazy" @error="$event.target.style.display='none'">
+                      <img :src="'/training-icon/' + encodeURIComponent(name)" class="hint-chip-icon" loading="lazy" @error="handleImageLoadError">
                       <span>{{ name }}</span>
                       <i class="fas fa-times hint-chip-remove"></i>
                     </div>
@@ -723,7 +723,7 @@
                     <div v-for="name in filteredFsgCharacters(fsgIdx)" :key="'fsg-'+fsgIdx+'-'+name"
                       class="hint-char-item" :class="{ selected: fsg.characters.includes(name) }"
                       @click="toggleFsgCharacter(fsgIdx, name)">
-                      <img :src="'/training-icon/' + encodeURIComponent(name)" class="hint-char-icon" loading="lazy" @error="$event.target.style.display='none'">
+                      <img :src="'/training-icon/' + encodeURIComponent(name)" class="hint-char-icon" loading="lazy" @error="handleImageLoadError">
                       <span class="hint-char-name">{{ name }}</span>
                     </div>
                   </div>
@@ -1034,7 +1034,7 @@
                     <div class="row">
                       <div v-for="(v, i) in spiritExplosionJunior" :key="i" class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>{{ ['Speed','Stamina','Power','Guts','Wit'][i] }}</small></div>
-                        <input type="number" step="0.01" v-model.number="spiritExplosionJunior[i]" class="form-control"
+                        <input type="number" step="1" v-model.number="spiritExplosionJunior[i]" class="form-control"
                           @input="onExtraWeightInput(spiritExplosionJunior, i)">
                       </div>
                     </div>
@@ -1042,7 +1042,7 @@
                     <div class="row">
                       <div v-for="(v, i) in spiritExplosionClassic" :key="i" class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>{{ ['Speed','Stamina','Power','Guts','Wit'][i] }}</small></div>
-                        <input type="number" step="0.01" v-model.number="spiritExplosionClassic[i]" class="form-control"
+                        <input type="number" step="1" v-model.number="spiritExplosionClassic[i]" class="form-control"
                           @input="onExtraWeightInput(spiritExplosionClassic, i)">
                       </div>
                     </div>
@@ -1050,7 +1050,7 @@
                     <div class="row">
                       <div v-for="(v, i) in spiritExplosionSenior" :key="i" class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>{{ ['Speed','Stamina','Power','Guts','Wit'][i] }}</small></div>
-                        <input type="number" step="0.01" v-model.number="spiritExplosionSenior[i]" class="form-control"
+                        <input type="number" step="1" v-model.number="spiritExplosionSenior[i]" class="form-control"
                           @input="onExtraWeightInput(spiritExplosionSenior, i)">
                       </div>
                     </div>
@@ -1058,7 +1058,7 @@
                     <div class="row">
                       <div v-for="(v, i) in spiritExplosionSeniorAfterSummer" :key="i" class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>{{ ['Speed','Stamina','Power','Guts','Wit'][i] }}</small></div>
-                        <input type="number" step="0.01" v-model.number="spiritExplosionSeniorAfterSummer[i]" class="form-control"
+                        <input type="number" step="1" v-model.number="spiritExplosionSeniorAfterSummer[i]" class="form-control"
                           @input="onExtraWeightInput(spiritExplosionSeniorAfterSummer, i)">
                       </div>
                     </div>
@@ -1066,7 +1066,7 @@
                     <div class="row">
                       <div v-for="(v, i) in spiritExplosionFinale" :key="i" class="col-md-2 col-6">
                         <div class="form-group mb-1"><small>{{ ['Speed','Stamina','Power','Guts','Wit'][i] }}</small></div>
-                        <input type="number" step="0.01" v-model.number="spiritExplosionFinale[i]" class="form-control"
+                        <input type="number" step="1" v-model.number="spiritExplosionFinale[i]" class="form-control"
                           @input="onExtraWeightInput(spiritExplosionFinale, i)">
                       </div>
                     </div>
@@ -1086,13 +1086,13 @@
                   <div class="col-md-3 col-6">
                     <div class="form-group">
                       <label for="inputSummerScoreThreshold">Summer Score Threshold</label>
-                      <input v-model.number="summerScoreThreshold" type="number" step="0.01" min="0" max="1" class="form-control" id="inputSummerScoreThreshold">
+                      <input v-model.number="summerScoreThreshold" type="number" step="1" min="0" class="form-control" id="inputSummerScoreThreshold">
                     </div>
                   </div>
                   <div class="col-md-3 col-6">
                     <div class="form-group">
                       <label for="inputWitRaceSearchThreshold">Race (>90% energy)/Wit training fallback</label>
-                      <input v-model.number="witRaceSearchThreshold" type="number" step="0.01" min="0" max="1" class="form-control" id="inputWitRaceSearchThreshold">
+                      <input v-model.number="witRaceSearchThreshold" type="number" step="1" min="0" class="form-control" id="inputWitRaceSearchThreshold">
                     </div>
                   </div>
                 </div>
@@ -2126,7 +2126,7 @@
 
 </style>
 
-<script>
+<script lang="ts">
 import SkillIcon from './SkillIcon.vue';
 import AoharuConfigModal from './AoharuConfigModal.vue';
 import UraConfigModal from './UraConfigModal.vue';
@@ -2136,6 +2136,54 @@ import raceData from '../assets/uma_race_data.json';
 import skillsData from '../assets/umamusume_final_skills_fixed.json';
 import eventNames, { eventOptionCounts } from 'virtual:events';
 import { encodePreset, decodePreset } from '../util/presetCodec.js';
+import { createScoringDefaults } from '../shared/scoringDefaults';
+import { buildScoringPayloadFromVm, applyScoringSourceToVm } from '../shared/scoringMapper';
+import {
+  createEventWeightDefaults,
+  buildEventWeightsPayloadFromVm,
+  applyEventWeightsSourceToVm,
+} from '../shared/eventWeightsMapper';
+import {
+  buildTaskSkillPayloadFromVm,
+  parseSkillSelectionFromSource,
+  applySkillSelectionStateToVm,
+} from '../shared/skillSelectionMapper';
+import {
+  getSortedPriorities,
+  getHighestPriority,
+  getSkillsForPriority,
+  selectSkillsAtPriority,
+  blacklistSkills,
+  clearSelectedSkills,
+  unblacklistSkills,
+  deselectSkillEverywhere,
+  toggleSkillSelection,
+  toggleSkillBlacklist,
+  addPriorityLevel,
+  removeLastPriorityLevel,
+  clearPrioritySelection,
+} from '../shared/skillAssignmentUtils';
+import {
+  buildTaskScenarioConfigPayloadFromVm,
+  applyScenarioConfigSourceToVm,
+} from '../shared/scenarioConfigMapper';
+import {
+  buildEventChoicesPayloadFromSelection,
+  applyEventChoicesSourceToVm,
+} from '../shared/eventChoicesMapper';
+import {
+  buildTaskPalConfigPayloadFromVm,
+  applyPresetPalConfigSourceToVm,
+  applyTaskPalConfigSourceToVm,
+} from '../shared/palConfigMapper';
+import { buildPresetPayloadFromVm } from '../shared/presetMapper';
+import { applyTaskFormStateFromSource } from '../shared/taskFormStateMapper';
+import { filterRacesForUi, isRaceCompatibleWithCharacter } from '../shared/raceFilterUtils';
+import {
+  fetchCultivatePresets,
+  saveCultivatePreset,
+  deleteCultivatePreset,
+} from '../shared/presetApi';
 
 export default {
   name: "TaskEditModal",
@@ -2153,6 +2201,8 @@ export default {
         this.mantTierCount = 2;
   },
   data: function () {
+    const scoringDefaults = createScoringDefaults();
+    const eventWeightDefaults = createEventWeightDefaults();
     return {
       sectionList: [
         { id: 'category-general', label: 'General' },
@@ -2176,8 +2226,6 @@ export default {
       showAdvanceOption: false,
       showRaceList: false,
       dataReady: false,
-      hideG2: false,
-      hideG3: false,
       // Race filtering properties
       raceSearch: '',
       showGI: true,
@@ -2194,7 +2242,6 @@ export default {
       // Character filter properties
       selectedCharacter: '',
       characterList: [],
-      characterAptitudes: {},
       characterTrainingPeriods: {},
       showCharacterChangeModal: false,
       fujikisekiShowMode: false,
@@ -2260,12 +2307,6 @@ export default {
         { id: 24, name: 'Matikanefukukitaru' },
         { id: 25, name: 'Nice Nature' },
         { id: 26, name: 'King Halo' }],
-      // Character data from JSON file
-      characterList: [],
-      // Character training periods from JSON file
-      characterTrainingPeriods: {
-
-      },
       // Race data from JSON file
       umamusumeRaceList_1: [],
       umamusumeRaceList_2: [],
@@ -2305,16 +2346,7 @@ export default {
       selectedUmamusumeTaskType: undefined,
       selectedSupportCard: undefined,
       extraRace: [],
-      skillLearnPriorityList: [
-        {
-          priority: 0,
-          skills: ""
-        }
-      ],
-      skillPriorityNum: 1,
-      skillLearnBlacklist: "",
       learnSkillOnlyUserProvided: false,
-      learnSkillBeforeRace: false,
       selectedRaceTactic1: 4,
       selectedRaceTactic2: 4,
       selectedRaceTactic3: 4,
@@ -2322,8 +2354,8 @@ export default {
       restTreshold: 48,
       compensateFailure: true,
       failureRateDivisor: 50,
-      summerScoreThreshold: 0.17,
-      witRaceSearchThreshold: 0.08,
+      summerScoreThreshold: scoringDefaults.summerScoreThreshold,
+      witRaceSearchThreshold: scoringDefaults.witRaceSearchThreshold,
       learnSkillThreshold: 888,
       cureAsapConditions: 'Migraine,Night Owl,Skin Outbreak,Slacker,Slow Metabolism,(Practice poor isn\'t worth a turn to cure)',
       recoverTP: 0,
@@ -2337,12 +2369,12 @@ export default {
       extraWeight2: [0, 0, 0, 0, 0],
       extraWeight3: [0, 0, 0, 0, 0],
       extraWeightSummer: [0, 0, 0, 0, 0],
-      baseScore: [0, 0, 0, 0, 0],
-      spiritExplosionJunior: [0.16, 0.16, 0.16, 0.06, 0.11],
-      spiritExplosionClassic: [0.16, 0.16, 0.16, 0.06, 0.11],
-      spiritExplosionSenior: [0.16, 0.16, 0.16, 0.06, 0.11],
-      spiritExplosionSeniorAfterSummer: [0.16, 0.16, 0.16, 0.06, 0.11],
-      spiritExplosionFinale: [0.16, 0.16, 0.16, 0.06, 0.11],
+      baseScore: scoringDefaults.baseScore,
+      spiritExplosionJunior: scoringDefaults.spiritExplosionJunior,
+      spiritExplosionClassic: scoringDefaults.spiritExplosionClassic,
+      spiritExplosionSenior: scoringDefaults.spiritExplosionSenior,
+      spiritExplosionSeniorAfterSummer: scoringDefaults.spiritExplosionSeniorAfterSummer,
+      spiritExplosionFinale: scoringDefaults.spiritExplosionFinale,
 
       // Motivation thresholds for trip decisions
       motivationThresholdYear1: 3,
@@ -2353,8 +2385,8 @@ export default {
       palCardStore: {},
       palSelected: "",
       // Pal card scoring configuration
-      palFriendshipScore: [0.08, 0.057, 0.018],
-      palCardMultiplier: 0.01,
+      palFriendshipScore: scoringDefaults.palFriendshipScore,
+      palCardMultiplier: scoringDefaults.palCardMultiplier,
       hintBoostCharacters: [],
       hintBoostMultiplier: 100,
       hintBoostSearch: '',
@@ -2364,7 +2396,7 @@ export default {
         { characters: [], multiplier: 100, search: '', expanded: false }
       ],
       allTrainingCharacters: [],
-      npcWeight: [5, 5, 5, 3, 0],
+      npcWeight: scoringDefaults.npcWeight,
 
       // URA配置
       skillEventWeight: [0, 0, 0],
@@ -2383,10 +2415,6 @@ export default {
       skillPriority2: [],
       selectedSkills: [],
       blacklistedSkills: [],
-      // Spoiler states for each priority section
-      showPriority0: true,
-      showPriority1: true,
-      showPriority2: true,
       // New properties for dynamic priority system
       activePriorities: [0], // Start with Priority 0
       skillAssignments: {}, // Track which skills are assigned to which priority
@@ -2408,36 +2436,9 @@ export default {
             draggingSkillName: null,
       dragOrigin: null,
       
-      eventWeightsJunior: {
-        Friendship: 35,
-        Speed: 10,
-        Stamina: 10,
-        Power: 10,
-        Guts: 20,
-        Wits: 1,
-        Hint: 100,
-        'Skill Points': 10
-      },
-      eventWeightsClassic: {
-        Friendship: 20,
-        Speed: 10,
-        Stamina: 10,
-        Power: 10,
-        Guts: 20,
-        Wits: 1,
-        Hint: 100,
-        'Skill Points': 10
-      },
-      eventWeightsSenior: {
-        Friendship: 0,
-        Speed: 10,
-        Stamina: 10,
-        Power: 10,
-        Guts: 20,
-        Wits: 1,
-        Hint: 100,
-        'Skill Points': 10
-      },
+      eventWeightsJunior: eventWeightDefaults.junior,
+      eventWeightsClassic: eventWeightDefaults.classic,
+      eventWeightsSenior: eventWeightDefaults.senior,
       dropHoverTarget: null,
       didValidDrop: false,
 
@@ -2447,23 +2448,23 @@ export default {
       eventList: [],
       eventChoicesSelected: {},
 
-      scoreValueJunior: [11, 0.6, 9],
-      scoreValueClassic: [11, 0.6, 9],
-      scoreValueSenior: [11, 0.6, 9],
-      scoreValueSeniorAfterSummer: [3, 0.6, 9],
-      scoreValueFinale: [0, 0.6, 0],
-      friendshipGreenDiscount: 10,
-      statCapPenalties: [[95, 0], [90, 70], [80, 80], [70, 90]],
-      scoringVersion: 2,
-      specialJunior: 0.095,
-      specialClassic: 0.095,
-      specialSenior: 0.095,
-      specialSeniorAfterSummer: 0.095,
-      specialFinale: 0,
-      witSpecialJunior: 1.57,
-      witSpecialClassic: 1.37,
+      scoreValueJunior: scoringDefaults.scoreValueJunior,
+      scoreValueClassic: scoringDefaults.scoreValueClassic,
+      scoreValueSenior: scoringDefaults.scoreValueSenior,
+      scoreValueSeniorAfterSummer: scoringDefaults.scoreValueSeniorAfterSummer,
+      scoreValueFinale: scoringDefaults.scoreValueFinale,
+      friendshipGreenDiscount: scoringDefaults.friendshipGreenDiscount,
+      statCapPenalties: scoringDefaults.statCapPenalties,
+      scoringVersion: scoringDefaults.scoringVersion,
+      specialJunior: scoringDefaults.specialJunior,
+      specialClassic: scoringDefaults.specialClassic,
+      specialSenior: scoringDefaults.specialSenior,
+      specialSeniorAfterSummer: scoringDefaults.specialSeniorAfterSummer,
+      specialFinale: scoringDefaults.specialFinale,
+      witSpecialJunior: scoringDefaults.witSpecialJunior,
+      witSpecialClassic: scoringDefaults.witSpecialClassic,
       // Stat Value Multiplier [speed, stamina, power, guts, wits, sp]
-      statValueMultiplier: [0.01, 0.01, 0.01, 0.01, 0.01, 0.005],
+      statValueMultiplier: scoringDefaults.statValueMultiplier,
       raceTacticConditions: [
         { op: 'range', val: 0, val2: 25, tactic: 3 },
         { op: 'range', val: 24, val2: 49, tactic: 3 },
@@ -2491,152 +2492,33 @@ export default {
       const q = this.hintBoostSearch.toLowerCase();
       return this.allTrainingCharacters.filter(n => n.toLowerCase().includes(q));
     },
+    raceFilterState() {
+      return {
+        raceSearch: this.raceSearch,
+        showGI: this.showGI,
+        showGII: this.showGII,
+        showGIII: this.showGIII,
+        showOP: this.showOP,
+        showPREOP: this.showPREOP,
+        showTurf: this.showTurf,
+        showDirt: this.showDirt,
+        showSprint: this.showSprint,
+        showMile: this.showMile,
+        showMedium: this.showMedium,
+        showLong: this.showLong,
+        selectedCharacter: this.selectedCharacter,
+        characterList: this.characterList,
+        characterTrainingPeriods: this.characterTrainingPeriods,
+      };
+    },
     filteredRaces_1() {
-      return this.umamusumeRaceList_1.filter(race => {
-        const matchesSearch = !this.raceSearch ||
-          race.name.toLowerCase().includes(this.raceSearch.toLowerCase()) ||
-          race.date.toLowerCase().includes(this.raceSearch.toLowerCase());
-        const matchesType =
-          (race.type === 'G1' && this.showGI) ||
-          (race.type === 'G2' && this.showGII) ||
-          (race.type === 'G3' && this.showGIII) ||
-          (race.type === 'OP' && this.showOP) ||
-          (race.type === 'PRE-OP' && this.showPREOP);
-        const matchesTerrain =
-          (race.terrain === 'Turf' && this.showTurf) ||
-          (race.terrain === 'Dirt' && this.showDirt);
-        const matchesDistance =
-          (race.distance === 'Sprint' && this.showSprint) ||
-          (race.distance === 'Mile' && this.showMile) ||
-          (race.distance === 'Medium' && this.showMedium) ||
-          (race.distance === 'Long' && this.showLong);
-
-        // Character filter logic
-        let matchesCharacter = true;
-        if (this.selectedCharacter) {
-          const character = this.characterList.find(c => c.name === this.selectedCharacter);
-          if (character) {
-            // Check if race matches character's aptitude (terrain and distance)
-            const matchesCharacterTerrain = race.terrain === character.terrain;
-
-            // Handle multiple distances (e.g., "Medium, Long")
-            const characterDistances = character.distance.split(', ').map(d => d.trim());
-            const matchesCharacterDistance = characterDistances.includes(race.distance);
-
-            const matchesAptitude = matchesCharacterTerrain && matchesCharacterDistance;
-
-            // Check if race date is within character's training periods
-            const characterPeriods = this.characterTrainingPeriods[this.selectedCharacter];
-            const matchesTrainingPeriod = characterPeriods && (
-              (characterPeriods['Junior Year'] && characterPeriods['Junior Year'].includes(race.date)) ||
-              (characterPeriods['Classic Year'] && characterPeriods['Classic Year'].includes(race.date)) ||
-              (characterPeriods['Senior Year'] && characterPeriods['Senior Year'].includes(race.date))
-            );
-
-            matchesCharacter = matchesAptitude && matchesTrainingPeriod;
-          }
-        }
-
-        return matchesSearch && matchesType && matchesTerrain && matchesDistance && matchesCharacter;
-      });
+      return filterRacesForUi(this.umamusumeRaceList_1, this.raceFilterState);
     },
     filteredRaces_2() {
-      return this.umamusumeRaceList_2.filter(race => {
-        const matchesSearch = !this.raceSearch ||
-          race.name.toLowerCase().includes(this.raceSearch.toLowerCase()) ||
-          race.date.toLowerCase().includes(this.raceSearch.toLowerCase());
-        const matchesType =
-          (race.type === 'G1' && this.showGI) ||
-          (race.type === 'G2' && this.showGII) ||
-          (race.type === 'G3' && this.showGIII) ||
-          (race.type === 'OP' && this.showOP) ||
-          (race.type === 'PRE-OP' && this.showPREOP);
-        const matchesTerrain =
-          (race.terrain === 'Turf' && this.showTurf) ||
-          (race.terrain === 'Dirt' && this.showDirt);
-        const matchesDistance =
-          (race.distance === 'Sprint' && this.showSprint) ||
-          (race.distance === 'Mile' && this.showMile) ||
-          (race.distance === 'Medium' && this.showMedium) ||
-          (race.distance === 'Long' && this.showLong);
-
-        // Character filter logic
-        let matchesCharacter = true;
-        if (this.selectedCharacter) {
-          const character = this.characterList.find(c => c.name === this.selectedCharacter);
-          if (character) {
-            // Check if race matches character's aptitude (terrain and distance)
-            const matchesCharacterTerrain = race.terrain === character.terrain;
-
-            // Handle multiple distances (e.g., "Medium, Long")
-            const characterDistances = character.distance.split(', ').map(d => d.trim());
-            const matchesCharacterDistance = characterDistances.includes(race.distance);
-
-            const matchesAptitude = matchesCharacterTerrain && matchesCharacterDistance;
-
-            // Check if race date is within character's training periods
-            const characterPeriods = this.characterTrainingPeriods[this.selectedCharacter];
-            const matchesTrainingPeriod = characterPeriods && (
-              (characterPeriods['Junior Year'] && characterPeriods['Junior Year'].includes(race.date)) ||
-              (characterPeriods['Classic Year'] && characterPeriods['Classic Year'].includes(race.date)) ||
-              (characterPeriods['Senior Year'] && characterPeriods['Senior Year'].includes(race.date))
-            );
-
-            matchesCharacter = matchesAptitude && matchesTrainingPeriod;
-          }
-        }
-
-        return matchesSearch && matchesType && matchesTerrain && matchesDistance && matchesCharacter;
-      });
+      return filterRacesForUi(this.umamusumeRaceList_2, this.raceFilterState);
     },
     filteredRaces_3() {
-      return this.umamusumeRaceList_3.filter(race => {
-        const matchesSearch = !this.raceSearch ||
-          race.name.toLowerCase().includes(this.raceSearch.toLowerCase()) ||
-          race.date.toLowerCase().includes(this.raceSearch.toLowerCase());
-        const matchesType =
-          (race.type === 'G1' && this.showGI) ||
-          (race.type === 'G2' && this.showGII) ||
-          (race.type === 'G3' && this.showGIII) ||
-          (race.type === 'OP' && this.showOP) ||
-          (race.type === 'PRE-OP' && this.showPREOP);
-        const matchesTerrain =
-          (race.terrain === 'Turf' && this.showTurf) ||
-          (race.terrain === 'Dirt' && this.showDirt);
-        const matchesDistance =
-          (race.distance === 'Sprint' && this.showSprint) ||
-          (race.distance === 'Mile' && this.showMile) ||
-          (race.distance === 'Medium' && this.showMedium) ||
-          (race.distance === 'Long' && this.showLong);
-
-        // Character filter logic
-        let matchesCharacter = true;
-        if (this.selectedCharacter) {
-          const character = this.characterList.find(c => c.name === this.selectedCharacter);
-          if (character) {
-            // Check if race matches character's aptitude (terrain and distance)
-            const matchesCharacterTerrain = race.terrain === character.terrain;
-
-            // Handle multiple distances (e.g., "Medium, Long")
-            const characterDistances = character.distance.split(', ').map(d => d.trim());
-            const matchesCharacterDistance = characterDistances.includes(race.distance);
-
-            const matchesAptitude = matchesCharacterTerrain && matchesCharacterDistance;
-
-            // Check if race date is within character's training periods
-            const characterPeriods = this.characterTrainingPeriods[this.selectedCharacter];
-            const matchesTrainingPeriod = characterPeriods && (
-              (characterPeriods['Junior Year'] && characterPeriods['Junior Year'].includes(race.date)) ||
-              (characterPeriods['Classic Year'] && characterPeriods['Classic Year'].includes(race.date)) ||
-              (characterPeriods['Senior Year'] && characterPeriods['Senior Year'].includes(race.date))
-            );
-
-            matchesCharacter = matchesAptitude && matchesTrainingPeriod;
-          }
-        }
-
-        return matchesSearch && matchesType && matchesTerrain && matchesDistance && matchesCharacter;
-      });
+      return filterRacesForUi(this.umamusumeRaceList_3, this.raceFilterState);
     },
     // Group skills by skill_type within each priority
     skillsByTypePriority0() {
@@ -2872,6 +2754,10 @@ export default {
       if (toastBody) toastBody.textContent = message;
       if (this.successToast) this.successToast.toast('show');
     },
+    handleImageLoadError(event: Event) {
+      const target = event.target as HTMLElement | null;
+      if (target) target.style.display = 'none';
+    },
     extractApiError(err, fallbackMessage) {
       const detail = err?.response?.data?.detail;
       if (typeof detail === 'string' && detail.trim().length > 0) {
@@ -2893,36 +2779,10 @@ export default {
         .catch(() => {});
     },
     resetEventWeights() {
-      this.eventWeightsJunior = {
-        Friendship: 35,
-        Speed: 10,
-        Stamina: 10,
-        Power: 10,
-        Guts: 20,
-        Wits: 1,
-        Hint: 100,
-        'Skill Points': 10
-      };
-      this.eventWeightsClassic = {
-        Friendship: 20,
-        Speed: 10,
-        Stamina: 10,
-        Power: 10,
-        Guts: 20,
-        Wits: 1,
-        Hint: 100,
-        'Skill Points': 10
-      };
-      this.eventWeightsSenior = {
-        Friendship: 0,
-        Speed: 10,
-        Stamina: 10,
-        Power: 10,
-        Guts: 20,
-        Wits: 1,
-        Hint: 100,
-        'Skill Points': 10
-      };
+      const defaults = createEventWeightDefaults();
+      this.eventWeightsJunior = defaults.junior;
+      this.eventWeightsClassic = defaults.classic;
+      this.eventWeightsSenior = defaults.senior;
     },
     togglePalConfigPanel() {
     this.showPalConfigPanel = !this.showPalConfigPanel;
@@ -2936,163 +2796,151 @@ export default {
     this.palSelected = palName;
     }
     },
+    currentSkillState() {
+      return {
+        selectedSkills: this.selectedSkills,
+        blacklistedSkills: this.blacklistedSkills,
+        skillAssignments: this.skillAssignments,
+        activePriorities: this.activePriorities,
+      };
+    },
+    applySkillState(state) {
+      this.selectedSkills = state.selectedSkills;
+      this.blacklistedSkills = state.blacklistedSkills;
+      this.skillAssignments = state.skillAssignments;
+      this.activePriorities = state.activePriorities;
+    },
     getFilteredNames() {
-        const names = [];
-        Object.keys(this.filteredSkillsByType).forEach(type => {
-          (this.filteredSkillsByType[type] || []).forEach(s => names.push(s.name));
-        });
-        return names;
-      },
-      onSelectAllFiltered() {
-        const targetPriority = Math.max(...this.activePriorities);
-        this.getFilteredNames().forEach(name => {
-          const bi = this.blacklistedSkills.indexOf(name);
-          if (bi > -1) this.blacklistedSkills.splice(bi, 1);
-          if (!this.selectedSkills.includes(name)) this.selectedSkills.push(name);
-          this.$set ? this.$set(this.skillAssignments, name, targetPriority) : (this.skillAssignments[name] = targetPriority);
-        });
-      },
-      onBlacklistAllFiltered() {
-        this.getFilteredNames().forEach(name => {
-          const si = this.selectedSkills.indexOf(name);
-          if (si > -1) this.selectedSkills.splice(si, 1);
-          if (this.skillAssignments[name] !== undefined) delete this.skillAssignments[name];
-          if (!this.blacklistedSkills.includes(name)) this.blacklistedSkills.push(name);
-        });
-      },
-      onClearAllFiltered() {
-        const set = new Set(this.getFilteredNames());
-        this.selectedSkills = this.selectedSkills.filter(name => {
-          if (set.has(name)) {
-            if (this.skillAssignments[name] !== undefined) delete this.skillAssignments[name];
-            return false;
-          }
-          return true;
-        });
-      },
-      onUnblacklistAllFiltered() {
-        const set = new Set(this.getFilteredNames());
-        this.blacklistedSkills = this.blacklistedSkills.filter(name => !set.has(name));
-      },
-      selectAllFilteredToCurrentPriority() {
-        const targetPriority = Math.max(...this.activePriorities);
-        const names = [];
-        Object.keys(this.filteredSkillsByType).forEach(type => {
-          this.filteredSkillsByType[type].forEach(s => names.push(s.name));
-        });
-        names.forEach(name => {
-          const bi = this.blacklistedSkills.indexOf(name);
-          if (bi > -1) this.blacklistedSkills.splice(bi, 1);
-          if (!this.selectedSkills.includes(name)) this.selectedSkills.push(name);
-          this.$set ? this.$set(this.skillAssignments, name, targetPriority) : (this.skillAssignments[name] = targetPriority);
-        });
-      },
-      blacklistAllFiltered() {
-        const names = [];
-        Object.keys(this.filteredSkillsByType).forEach(type => {
-          this.filteredSkillsByType[type].forEach(s => names.push(s.name));
-        });
-        names.forEach(name => {
-          const si = this.selectedSkills.indexOf(name);
-          if (si > -1) this.selectedSkills.splice(si, 1);
-          if (this.skillAssignments[name] !== undefined) delete this.skillAssignments[name];
-          if (!this.blacklistedSkills.includes(name)) this.blacklistedSkills.push(name);
-        });
-      },
-      clearCurrentPriority() {
-        const targetPriority = Math.max(...this.activePriorities);
-        this.selectedSkills = this.selectedSkills.filter(name => {
-          const keep = (this.skillAssignments[name] ?? 0) !== targetPriority;
-          if (!keep) delete this.skillAssignments[name];
-          return keep;
-        });
-      },
-      clearBlacklist() {
-        this.blacklistedSkills = [];
-      },
-            getSelectedSkillsForPriority(priority) {
-        return this.selectedSkills.filter(name => (this.skillAssignments[name] ?? 0) === priority);
-      },
-      getActivePriorities() {
-                return [...this.activePriorities].sort((a,b) => a-b);
-      },
-      onDragStartSkill(skillName, origin, originPriority = null) {
-        this.draggingSkillName = skillName;
-        this.dragOrigin = { type: origin, priority: originPriority };
+      const names = [];
+      Object.keys(this.filteredSkillsByType).forEach(type => {
+        (this.filteredSkillsByType[type] || []).forEach(s => names.push(s.name));
+      });
+      return names;
+    },
+    onSelectAllFiltered() {
+      this.applySkillState(
+        selectSkillsAtPriority(
+          this.currentSkillState(),
+          this.getFilteredNames(),
+          getHighestPriority(this.activePriorities),
+        ),
+      );
+    },
+    onBlacklistAllFiltered() {
+      this.applySkillState(
+        blacklistSkills(this.currentSkillState(), this.getFilteredNames()),
+      );
+    },
+    onClearAllFiltered() {
+      this.applySkillState(
+        clearSelectedSkills(this.currentSkillState(), this.getFilteredNames()),
+      );
+    },
+    onUnblacklistAllFiltered() {
+      this.applySkillState(
+        unblacklistSkills(this.currentSkillState(), this.getFilteredNames()),
+      );
+    },
+    selectAllFilteredToCurrentPriority() {
+      this.applySkillState(
+        selectSkillsAtPriority(
+          this.currentSkillState(),
+          this.getFilteredNames(),
+          getHighestPriority(this.activePriorities),
+        ),
+      );
+    },
+    blacklistAllFiltered() {
+      this.applySkillState(
+        blacklistSkills(this.currentSkillState(), this.getFilteredNames()),
+      );
+    },
+    clearCurrentPriority() {
+      this.applySkillState(
+        clearPrioritySelection(
+          this.currentSkillState(),
+          getHighestPriority(this.activePriorities),
+        ),
+      );
+    },
+    clearBlacklist() {
+      this.applySkillState(
+        unblacklistSkills(this.currentSkillState(), this.blacklistedSkills),
+      );
+    },
+    onDragStartSkill(skillName, origin, originPriority = null) {
+      this.draggingSkillName = skillName;
+      this.dragOrigin = { type: origin, priority: originPriority };
+      this.didValidDrop = false;
+    },
+    onDragEndSkill() {
+      if (this.draggingSkillName) {
+        if (!this.didValidDrop) {
+          this.deselectSkill(this.draggingSkillName);
+        }
+        this.draggingSkillName = null;
+        this.dropHoverTarget = null;
         this.didValidDrop = false;
-      },
-      onDragEndSkill() {
-                if (this.draggingSkillName) {
-          if (!this.didValidDrop) {
-            this.deselectSkill(this.draggingSkillName);
-          }
-          this.draggingSkillName = null;
-          this.dropHoverTarget = null;
-          this.didValidDrop = false;
-          this.dragOrigin = null;
-        }
-      },
-      onDragEnterPriority(priority) {
-        this.dropHoverTarget = { type: 'priority', priority };
-      },
-      onDragLeavePriority(priority) {
-        if (this.dropHoverTarget && this.dropHoverTarget.type === 'priority' && this.dropHoverTarget.priority === priority) {
-          this.dropHoverTarget = null;
-        }
-      },
-      onDropToPriority(priority) {
-        if (!this.draggingSkillName) return;
-        this.moveSkillToPriority(this.draggingSkillName, priority);
-        this.didValidDrop = true;
+        this.dragOrigin = null;
+      }
+    },
+    onDragEnterPriority(priority) {
+      this.dropHoverTarget = { type: 'priority', priority };
+    },
+    onDragLeavePriority(priority) {
+      if (this.dropHoverTarget && this.dropHoverTarget.type === 'priority' && this.dropHoverTarget.priority === priority) {
         this.dropHoverTarget = null;
-        this.draggingSkillName = null;
-      },
-      onDragEnterBlacklist() {
-        this.dropHoverTarget = { type: 'blacklist' };
-      },
-      onDragLeaveBlacklist() {
-        if (this.dropHoverTarget && this.dropHoverTarget.type === 'blacklist') {
-          this.dropHoverTarget = null;
-        }
-      },
-      onDropToBlacklist() {
-        if (!this.draggingSkillName) return;
-        this.moveSkillToBlacklist(this.draggingSkillName);
-        this.didValidDrop = true;
+      }
+    },
+    onDropToPriority(priority) {
+      if (!this.draggingSkillName) return;
+      this.moveSkillToPriority(this.draggingSkillName, priority);
+      this.didValidDrop = true;
+      this.dropHoverTarget = null;
+      this.draggingSkillName = null;
+    },
+    onDragEnterBlacklist() {
+      this.dropHoverTarget = { type: 'blacklist' };
+    },
+    onDragLeaveBlacklist() {
+      if (this.dropHoverTarget && this.dropHoverTarget.type === 'blacklist') {
         this.dropHoverTarget = null;
+      }
+    },
+    onDropToBlacklist() {
+      if (!this.draggingSkillName) return;
+      this.moveSkillToBlacklist(this.draggingSkillName);
+      this.didValidDrop = true;
+      this.dropHoverTarget = null;
+      this.draggingSkillName = null;
+    },
+    onGlobalDrop(e) {
+      if (this.draggingSkillName && !this.didValidDrop) {
+        this.deselectSkill(this.draggingSkillName);
         this.draggingSkillName = null;
-      },
-      onGlobalDrop(e) {
-                if (this.draggingSkillName && !this.didValidDrop) {
-          this.deselectSkill(this.draggingSkillName);
-          this.draggingSkillName = null;
-        }
-      },
-      onGlobalDragEnd(e) {
-        if (this.draggingSkillName && !this.didValidDrop) {
-          this.deselectSkill(this.draggingSkillName);
-          this.draggingSkillName = null;
-        }
-      },
-      moveSkillToPriority(skillName, priority) {
-                const bi = this.blacklistedSkills.indexOf(skillName);
-        if (bi > -1) this.blacklistedSkills.splice(bi, 1);
-                if (!this.selectedSkills.includes(skillName)) this.selectedSkills.push(skillName);
-                this.$set ? this.$set(this.skillAssignments, skillName, priority) : (this.skillAssignments[skillName] = priority);
-      },
-      moveSkillToBlacklist(skillName) {
-                const si = this.selectedSkills.indexOf(skillName);
-        if (si > -1) this.selectedSkills.splice(si, 1);
-        if (this.skillAssignments[skillName] !== undefined) delete this.skillAssignments[skillName];
-        if (!this.blacklistedSkills.includes(skillName)) this.blacklistedSkills.push(skillName);
-      },
-      deselectSkill(skillName) {
-        const si = this.selectedSkills.indexOf(skillName);
-        if (si > -1) this.selectedSkills.splice(si, 1);
-        if (this.skillAssignments[skillName] !== undefined) delete this.skillAssignments[skillName];
-        const bi = this.blacklistedSkills.indexOf(skillName);
-        if (bi > -1) this.blacklistedSkills.splice(bi, 1);
-      },
+      }
+    },
+    onGlobalDragEnd(e) {
+      if (this.draggingSkillName && !this.didValidDrop) {
+        this.deselectSkill(this.draggingSkillName);
+        this.draggingSkillName = null;
+      }
+    },
+    moveSkillToPriority(skillName, priority) {
+      this.applySkillState(
+        selectSkillsAtPriority(this.currentSkillState(), [skillName], priority),
+      );
+    },
+    moveSkillToBlacklist(skillName) {
+      this.applySkillState(
+        blacklistSkills(this.currentSkillState(), [skillName]),
+      );
+    },
+    deselectSkill(skillName) {
+      this.applySkillState(
+        deselectSkillEverywhere(this.currentSkillState(), skillName),
+      );
+    },
       // Event Settings
       toggleEventList() {
         this.showEventList = !this.showEventList;
@@ -3117,15 +2965,6 @@ export default {
           this.eventChoicesSelected[name] = n;
         }
       },
-      buildEventChoices() {
-        const out = {};
-        if (this.eventChoicesSelected && typeof this.eventChoicesSelected === 'object') {
-          for (const [k, v] of Object.entries(this.eventChoicesSelected)) {
-            if (Number.isInteger(v) && v > 0) out[k] = v;
-          }
-        }
-        return out;
-      },
       loadEventList() {
         try {
           this.eventList = Array.isArray(eventNames) ? eventNames : [];
@@ -3138,9 +2977,6 @@ export default {
         if (!q) return this.eventList;
         return this.eventList.filter(name => name && name.toLowerCase().includes(q));
       },
-    onScenarioChange() {
-      // v2: score arrays are always 3 elements, no special handling needed
-    },
         normalizeScoreArrays(targetLen) {
       const ensureLen = (arr) => {
         if (arr.length > targetLen) arr.splice(targetLen)
@@ -3224,27 +3060,6 @@ export default {
       const q = group.search.toLowerCase();
       return this.allTrainingCharacters.filter(n => n.toLowerCase().includes(q));
     },
-    deleteBox(item, index) {
-      if (this.skillLearnPriorityList.length <= 1) {
-        return false
-      }
-      this.skillLearnPriorityList.splice(index, 1)
-      this.skillPriorityNum--
-      for (let i = index; i < this.skillPriorityNum; i++) {
-        this.skillLearnPriorityList[i].priority--
-      }
-    },
-    addBox(item) {
-      if (this.skillLearnPriorityList.length >= 5) {
-        return false
-      }
-      this.skillLearnPriorityList.push(
-        {
-          priority: this.skillPriorityNum++,
-          skills: ''
-        }
-      )
-    },
     initSelect: function () {
       this.selectedSupportCard = { id: 10001, name: 'Beyond This Shining Moment', desc: 'Silence Suzuka' }
       this.selectedUmamusumeTaskType = this.umamusumeTaskTypeList[0]
@@ -3254,22 +3069,12 @@ export default {
     },
     // Helper: check whether a race matches the currently selected character's aptitude and schedule
     isRaceCompatibleWithSelectedCharacter(race) {
-      if (!this.selectedCharacter) return true
-      const character = this.characterList.find(c => c.name === this.selectedCharacter)
-      if (!character) return true
-      // Terrain/distance aptitude
-      const matchesTerrain = race.terrain === character.terrain
-      const characterDistances = character.distance.split(', ').map(d => d.trim())
-      const matchesDistance = characterDistances.includes(race.distance)
-      const matchesAptitude = matchesTerrain && matchesDistance
-      if (!matchesAptitude) return false
-      // Training period (by date label string)
-      const periods = this.characterTrainingPeriods[this.selectedCharacter]
-      if (!periods) return true
-      const inPeriod = (periods['Junior Year'] && periods['Junior Year'].includes(race.date)) ||
-        (periods['Classic Year'] && periods['Classic Year'].includes(race.date)) ||
-        (periods['Senior Year'] && periods['Senior Year'].includes(race.date))
-      return !!inPeriod
+      return isRaceCompatibleWithCharacter(
+        race,
+        this.selectedCharacter,
+        this.characterList,
+        this.characterTrainingPeriods,
+      )
     },
     // Quick selection methods
     selectAllGI: function () {
@@ -3348,46 +3153,23 @@ export default {
     },
 
     handleFilterSelection: function () {
-      // Keep the selection but only keep races that are compatible with the selected character
       if (this.selectedCharacter) {
-        const character = this.characterList.find(c => c.name === this.selectedCharacter);
-        if (character) {
-          // Filter races to only keep compatible ones
-          this.extraRace = this.extraRace.filter(raceId => {
-            // Find the race in any of the three race lists
-            let race = null;
-            [this.umamusumeRaceList_1, this.umamusumeRaceList_2, this.umamusumeRaceList_3].forEach(raceList => {
-              if (!race) {
-                race = raceList.find(r => r.id === raceId);
-              }
-            });
-
-            if (!race) return false;
-
-            // Check if race matches character's aptitude (terrain and distance)
-            const matchesTerrain = race.terrain === character.terrain;
-
-            // Handle multiple distances (e.g., "Medium, Long")
-            const characterDistances = character.distance.split(', ').map(d => d.trim());
-            const matchesDistance = characterDistances.includes(race.distance);
-
-            const matchesAptitude = matchesTerrain && matchesDistance;
-
-            // Check if race date is within character's training periods
-            const characterPeriods = this.characterTrainingPeriods[this.selectedCharacter];
-            if (characterPeriods && characterPeriods.length > 0) {
-              const raceDate = new Date(race.date);
-              const isInTrainingPeriod = characterPeriods.some(period => {
-                const startDate = new Date(period.start);
-                const endDate = new Date(period.end);
-                return raceDate >= startDate && raceDate <= endDate;
-              });
-              return matchesAptitude && isInTrainingPeriod;
-            }
-
-            return matchesAptitude;
-          });
-        }
+        const allRaces = [
+          ...this.umamusumeRaceList_1,
+          ...this.umamusumeRaceList_2,
+          ...this.umamusumeRaceList_3,
+        ];
+        const raceById = new Map(allRaces.map((race) => [race.id, race]));
+        this.extraRace = this.extraRace.filter((raceId) => {
+          const race = raceById.get(raceId);
+          if (!race) return false;
+          return isRaceCompatibleWithCharacter(
+            race,
+            this.selectedCharacter,
+            this.characterList,
+            this.characterTrainingPeriods,
+          );
+        });
       }
       this.closeCharacterChangeModal();
     },
@@ -3400,41 +3182,14 @@ export default {
       }
     },
     toggleSkill: function (skillName) {
-      const index = this.selectedSkills.indexOf(skillName);
-      if (index > -1) {
-        // Remove from selected skills
-        this.selectedSkills.splice(index, 1);
-        delete this.skillAssignments[skillName];
-      } else {
-        // Add to selected skills and assign to highest priority
-        this.selectedSkills.push(skillName);
-        const highestPriority = Math.max(...this.activePriorities);
-        this.skillAssignments[skillName] = highestPriority;
-      }
+      this.applySkillState(
+        toggleSkillSelection(this.currentSkillState(), skillName),
+      );
     },
     toggleBlacklistSkill: function (skillName) {
-      const index = this.blacklistedSkills.indexOf(skillName);
-      if (index > -1) {
-        this.blacklistedSkills.splice(index, 1);
-      } else {
-        this.blacklistedSkills.push(skillName);
-        // Remove from selected skills if it was selected
-        const selectedIndex = this.selectedSkills.indexOf(skillName);
-        if (selectedIndex > -1) {
-          this.selectedSkills.splice(selectedIndex, 1);
-          delete this.skillAssignments[skillName];
-        }
-      }
-    },
-    // Spoiler toggle methods
-    togglePriority0: function () {
-      this.showPriority0 = !this.showPriority0;
-    },
-    togglePriority1: function () {
-      this.showPriority1 = !this.showPriority1;
-    },
-    togglePriority2: function () {
-      this.showPriority2 = !this.showPriority2;
+      this.applySkillState(
+        toggleSkillBlacklist(this.currentSkillState(), skillName),
+      );
     },
     switchAdvanceOption: function () {
       this.showAdvanceOption = !this.showAdvanceOption
@@ -3570,33 +3325,9 @@ export default {
         this.showToast("Unable to save: missing task id.");
         return;
       }
-      // Convert new skill system to bot-expected format
-      var learn_skill_list = []
+      const taskSkillPayload = buildTaskSkillPayloadFromVm(this);
 
-      // Group selected skills by priority
-      const skillsByPriority = {};
-      this.selectedSkills.forEach(skillName => {
-        const priority = this.skillAssignments[skillName] || 0;
-        if (!skillsByPriority[priority]) {
-          skillsByPriority[priority] = [];
-        }
-        skillsByPriority[priority].push(skillName);
-      });
-
-      // Convert to bot-expected format (list of lists)
-      for (let priority = 0; priority <= Math.max(...this.activePriorities); priority++) {
-        if (skillsByPriority[priority] && skillsByPriority[priority].length > 0) {
-          learn_skill_list.push(skillsByPriority[priority]);
-        } else {
-          learn_skill_list.push([]);
-        }
-      }
-
-      // Convert blacklisted skills to bot-expected format
-      var learn_skill_blacklist = [...this.blacklistedSkills];
-
-      var ura_reset_skill_event_weight_list = this.resetSkillEventWeightList ? this.resetSkillEventWeightList.split(",").map(item => item.trim()) : []
-      let payload = {
+      let payload: any = {
         app_name: "umamusume",
         task_execute_mode: this.selectedExecuteMode,
         task_type: this.selectedUmamusumeTaskType.id,
@@ -3608,8 +3339,8 @@ export default {
           "follow_support_card_name": this.selectedSupportCard.name,
           "follow_support_card_level": this.supportCardLevel,
           "extra_race_list": this.extraRace,
-          "learn_skill_list": learn_skill_list,
-          "learn_skill_blacklist": learn_skill_blacklist,
+          "learn_skill_list": taskSkillPayload.learn_skill_list,
+          "learn_skill_blacklist": taskSkillPayload.learn_skill_blacklist,
           "tactic_list": [4, 4, 4], // Legacy dummy values
           "tactic_actions": this.raceTacticConditions,
           "clock_use_limit": this.clockUseLimit,
@@ -3624,55 +3355,16 @@ export default {
           "rest_threshold": this.restTreshold,  
           "compensate_failure": this.compensateFailure,
           "failure_rate_divisor": this.failureRateDivisor,
-          "summer_score_threshold": this.summerScoreThreshold,
-          "wit_race_search_threshold": this.witRaceSearchThreshold,
           "use_last_parents": this.useLastParents,
           "learn_skill_only_user_provided": this.learnSkillOnlyUserProvided,
           "extra_weight": [this.extraWeight1, this.extraWeight2, this.extraWeight3, this.extraWeightSummer],
-          "base_score": [...this.baseScore],
-          "spirit_explosion": [
-            this.spiritExplosionJunior.map(v => Math.max(-1, Math.min(1, v))),
-            this.spiritExplosionClassic.map(v => Math.max(-1, Math.min(1, v))),
-            this.spiritExplosionSenior.map(v => Math.max(-1, Math.min(1, v))),
-            this.spiritExplosionSeniorAfterSummer.map(v => Math.max(-1, Math.min(1, v))),
-            this.spiritExplosionFinale.map(v => Math.max(-1, Math.min(1, v)))
-          ],
-          "score_value": [
-            (this.selectedScenario === 2 ? [...this.scoreValueJunior, this.specialJunior] : [...this.scoreValueJunior]),
-            (this.selectedScenario === 2 ? [...this.scoreValueClassic, this.specialClassic] : [...this.scoreValueClassic]),
-            (this.selectedScenario === 2 ? [...this.scoreValueSenior, this.specialSenior] : [...this.scoreValueSenior]),
-            (this.selectedScenario === 2 ? [...this.scoreValueSeniorAfterSummer, this.specialSeniorAfterSummer] : [...this.scoreValueSeniorAfterSummer]),
-            (this.selectedScenario === 2 ? [...this.scoreValueFinale, this.specialFinale] : [...this.scoreValueFinale])
-          ],
-          "stat_value_multiplier": [...this.statValueMultiplier],
-          "wit_special_multiplier": [this.witSpecialJunior, this.witSpecialClassic],
           // Motivation thresholds for trip decisions
           "motivation_threshold_year1": this.motivationThresholdYear1,
           "motivation_threshold_year2": this.motivationThresholdYear2,
           "motivation_threshold_year3": this.motivationThresholdYear3,
-          "prioritize_recreation": this.prioritizeRecreation,
           // 限时: 富士奇石的表演秀
           "fujikiseki_show_mode": this.fujikisekiShowMode,
-          "fujikiseki_show_difficulty": this.fujikisekiShowDifficulty,
-          // URA配置
-          "ura_config": this.selectedScenario === 1 ? {
-            "skillEventWeight": [...this.skillEventWeight],
-            "resetSkillEventWeightList": ura_reset_skill_event_weight_list
-          } : null,
-          "aoharu_config": this.selectedScenario === 2 ? {
-            "preliminaryRoundSelections": [...this.preliminaryRoundSelections],
-            "aoharuTeamNameSelection": this.aoharuTeamNameSelection
-          } : null,
-          "mant_config": this.selectedScenario === 3 ? {
-            "item_tiers": { ...this.mantItemTiers },
-            "tier_count": this.mantTierCount,
-            "whistle_threshold": this.mantWhistleThreshold,
-            "whistle_focus_summer": this.mantWhistleFocusSummer,
-            "mega_small_threshold": this.mantMegaSmallThreshold,
-            "mega_medium_threshold": this.mantMegaMediumThreshold,
-            "mega_large_threshold": this.mantMegaLargeThreshold,
-            "training_weights_threshold": this.mantTrainingWeightsThreshold
-          } : null
+          "fujikiseki_show_difficulty": this.fujikisekiShowDifficulty
         }
       }
       if (this.selectedExecuteMode === 2) {
@@ -3681,60 +3373,12 @@ export default {
         }
       }
       payload.attachment_data = payload.attachment_data || {};
-      payload.attachment_data.event_choices = this.buildEventChoices();
+      payload.attachment_data.event_choices = buildEventChoicesPayloadFromSelection(this.eventChoicesSelected);
       
-      // Add event weights to payload
-      payload.attachment_data.event_weights = {
-        junior: {
-          Friendship: this.eventWeightsJunior.Friendship,
-          Speed: this.eventWeightsJunior.Speed,
-          Stamina: this.eventWeightsJunior.Stamina,
-          Power: this.eventWeightsJunior.Power,
-          Guts: this.eventWeightsJunior.Guts,
-          Wisdom: this.eventWeightsJunior.Wits,
-          'Skill Hint': this.eventWeightsJunior.Hint,
-          'Skill Pts': this.eventWeightsJunior['Skill Points']
-        },
-        classic: {
-          Friendship: this.eventWeightsClassic.Friendship,
-          Speed: this.eventWeightsClassic.Speed,
-          Stamina: this.eventWeightsClassic.Stamina,
-          Power: this.eventWeightsClassic.Power,
-          Guts: this.eventWeightsClassic.Guts,
-          Wisdom: this.eventWeightsClassic.Wits,
-          'Skill Hint': this.eventWeightsClassic.Hint,
-          'Skill Pts': this.eventWeightsClassic['Skill Points']
-        },
-        senior: {
-          Friendship: this.eventWeightsSenior.Friendship,
-          Speed: this.eventWeightsSenior.Speed,
-          Stamina: this.eventWeightsSenior.Stamina,
-          Power: this.eventWeightsSenior.Power,
-          Guts: this.eventWeightsSenior.Guts,
-          Wisdom: this.eventWeightsSenior.Wits,
-          'Skill Hint': this.eventWeightsSenior.Hint,
-          'Skill Pts': this.eventWeightsSenior['Skill Points']
-        }
-      };
-
-      const palThresholds = this.palCardStore[this.palSelected];
-      if (this.prioritizeRecreation && this.palSelected && Array.isArray(palThresholds) && palThresholds.length > 0) {
-        payload.attachment_data.prioritize_recreation = true;
-        payload.attachment_data.pal_name = this.palSelected;
-        payload.attachment_data.pal_thresholds = palThresholds;
-        payload.attachment_data.pal_friendship_score = [...this.palFriendshipScore];
-        payload.attachment_data.pal_card_multiplier = this.palCardMultiplier;
-      } else {
-        payload.attachment_data.prioritize_recreation = false;
-        payload.attachment_data.pal_name = "";
-        payload.attachment_data.pal_thresholds = [];
-        payload.attachment_data.pal_friendship_score = [0.08, 0.057, 0.018];
-        payload.attachment_data.pal_card_multiplier = 0.1;
-      }
-      payload.attachment_data.npc_weight = [...this.npcWeight];
-      payload.attachment_data.friendship_green_discount = this.friendshipGreenDiscount;
-      payload.attachment_data.stat_cap_penalties = this.statCapPenalties.map(p => [...p]);
-      payload.attachment_data.scoring_version = 2;
+      payload.attachment_data.event_weights = buildEventWeightsPayloadFromVm(this);
+      Object.assign(payload.attachment_data, buildTaskScenarioConfigPayloadFromVm(this));
+      Object.assign(payload.attachment_data, buildTaskPalConfigPayloadFromVm(this));
+      Object.assign(payload.attachment_data, buildScoringPayloadFromVm(this));
       const requestPayload = this.isEditMode ? { ...payload, task_id: this.editingTaskId } : payload;
       const request = this.isEditMode
         ? this.axios.put("/task", requestPayload)
@@ -3752,351 +3396,28 @@ export default {
       })
     },
     applyPresetRace: function () {
-      this.selectedScenario = this.presetsUse.scenario || 1
-      this.extraRace = this.presetsUse.race_list
-      this.expectSpeedValue = this.presetsUse.expect_attribute[0]
-      this.expectStaminaValue = this.presetsUse.expect_attribute[1]
-      this.expectPowerValue = this.presetsUse.expect_attribute[2]
-      this.expectWillValue = this.presetsUse.expect_attribute[3]
-      this.expectIntelligenceValue = this.presetsUse.expect_attribute[4]
-      this.selectedSupportCard = this.presetsUse.follow_support_card,
-        this.supportCardLevel = this.presetsUse.follow_support_card_level,
-        this.clockUseLimit = this.presetsUse.clock_use_limit,
-        this.restTreshold = (this.presetsUse.rest_treshold || this.presetsUse.fast_path_energy_limit || 48),
-        this.summerScoreThreshold = (this.presetsUse.summer_score_threshold !== undefined ? this.presetsUse.summer_score_threshold : 0.17),
-        this.witRaceSearchThreshold = (this.presetsUse.wit_race_search_threshold !== undefined ? this.presetsUse.wit_race_search_threshold : 0.08),
-      this.compensateFailure = (this.presetsUse.compensate_failure !== false)
-      this.failureRateDivisor = (this.presetsUse.failure_rate_divisor !== undefined ? this.presetsUse.failure_rate_divisor : 50)
-      this.useLastParents = (this.presetsUse.use_last_parents === true)
-      this.overrideInsufficientFansForcedRaces = (this.presetsUse.override_insufficient_fans_forced_races === true)
-      this.learnSkillOnlyUserProvided = !!this.presetsUse.learn_skill_only_user_provided
-      this.recoverTP = this.presetsUse.allow_recover_tp || 0
-      this.manualPurchase = !!this.presetsUse.manual_purchase_at_end
-      this.skipDoubleCircleUnlessHighHint = !!this.presetsUse.skip_double_circle_unless_high_hint
-      this.hintBoostCharacters = Array.isArray(this.presetsUse.hint_boost_characters) ? [...this.presetsUse.hint_boost_characters] : []
-      this.hintBoostMultiplier = this.presetsUse.hint_boost_multiplier !== undefined ? this.presetsUse.hint_boost_multiplier : 100
-      if (Array.isArray(this.presetsUse.friendship_score_groups) && this.presetsUse.friendship_score_groups.length > 0) {
-        this.friendshipScoreGroups = this.presetsUse.friendship_score_groups.map(g => ({ characters: [...(g.characters || [])], multiplier: g.multiplier !== undefined ? g.multiplier : 100, search: '', expanded: false }))
-      } else {
-        this.friendshipScoreGroups = [{ characters: [], multiplier: 100, search: '', expanded: false }, { characters: [], multiplier: 100, search: '', expanded: false }]
-      }
-        this.learnSkillThreshold = this.presetsUse.learn_skill_threshold
-        // Convert legacy race tactics to new condition system if actions not present
-        if (this.presetsUse.tactic_actions && this.presetsUse.tactic_actions.length > 0) {
-          this.raceTacticConditions = this.presetsUse.tactic_actions;
-        } else {
-          const t1 = this.presetsUse.race_tactic_1 || 3;
-          const t2 = this.presetsUse.race_tactic_2 || 3;
-          const t3 = this.presetsUse.race_tactic_3 || 3;
-          this.raceTacticConditions = [
-            { op: 'range', val: 0, val2: 25, tactic: t1 }, // Year 1: Turns 1-24
-            { op: 'range', val: 24, val2: 49, tactic: t2 }, // Year 2: Turns 25-48
-            { op: '>', val: 48, val2: 0, tactic: t3 }      // Year 3+: Turns 49+
-          ];
-        }
-        this.skillLearnBlacklist = this.presetsUse.skill_blacklist
-     this.cureAsapConditions = this.presetsUse.cureAsapConditions
-      // Load motivation thresholds (with defaults)
-      this.motivationThresholdYear1 = parseInt(this.presetsUse.motivation_threshold_year1) || 3
-      this.motivationThresholdYear2 = parseInt(this.presetsUse.motivation_threshold_year2) || 4
-      this.motivationThresholdYear3 = parseInt(this.presetsUse.motivation_threshold_year3) || 4
-      this.prioritizeRecreation = this.presetsUse.prioritize_recreation || false
-      if ('pal_selected' in this.presetsUse) {
-        this.palSelected = this.presetsUse.pal_selected || ""
-      }
-      if ('pal_card_store' in this.presetsUse && this.presetsUse.pal_card_store) {
-        const presetStore = this.presetsUse.pal_card_store
-        for (const key in presetStore) {
-          if (Array.isArray(presetStore[key]) && presetStore[key].length > 0) {
-            this.palCardStore[key] = presetStore[key]
-          }
-        }
-      }
+      const scoringDefaults = createScoringDefaults();
+      applyTaskFormStateFromSource(this, this.presetsUse, { defaultRaceTactics: [3, 3, 3] });
+      applyPresetPalConfigSourceToVm(this, this.presetsUse);
+      applyEventChoicesSourceToVm(this, this.presetsUse.event_overrides);
 
-      if ('pal_friendship_score' in this.presetsUse && Array.isArray(this.presetsUse.pal_friendship_score)) {
-        this.palFriendshipScore = [...this.presetsUse.pal_friendship_score]
-      } else {
-        this.palFriendshipScore = [0.08, 0.057, 0.018]
-      }
-      if ('pal_card_multiplier' in this.presetsUse) {
-        this.palCardMultiplier = this.presetsUse.pal_card_multiplier
-      } else {
-        this.palCardMultiplier = 0.01
-      }
-      if ('npc_weight' in this.presetsUse && Array.isArray(this.presetsUse.npc_weight)) {
-        this.npcWeight = [...this.presetsUse.npc_weight]
-      } else {
-        this.npcWeight = [5, 5, 5, 3, 0]
-      }
-      if ('event_overrides' in this.presetsUse && this.presetsUse.event_overrides) {
-        this.eventChoicesSelected = { ...this.presetsUse.event_overrides }
-      } else {
-        this.eventChoicesSelected = {}
-      }
+      applyScoringSourceToVm(this, this.presetsUse, scoringDefaults);
 
-      if ('scoreValue' in this.presetsUse && this.presetsUse.scoreValue && this.presetsUse.scoreValue.length >= 4) {
-        this.scoreValueJunior = [...this.presetsUse.scoreValue[0]]
-        this.scoreValueClassic = [...this.presetsUse.scoreValue[1]]
-        this.scoreValueSenior = [...this.presetsUse.scoreValue[2]]
-        this.scoreValueSeniorAfterSummer = [...this.presetsUse.scoreValue[3]]
-        if (this.presetsUse.scoreValue.length >= 5) {
-          this.scoreValueFinale = [...this.presetsUse.scoreValue[4]]
-        }
-
-        // Extract special training values if present (last element beyond 3)
-        if (this.selectedScenario === 2) {
-          const extractSpecial = (arr) => {
-            if (arr.length > 3) {
-              const special = arr[arr.length - 1]
-              return { arr: arr.slice(0, arr.length - 1), special }
-            }
-            return { arr, special: undefined }
-          }
-          let r
-          r = extractSpecial(this.scoreValueJunior); this.scoreValueJunior = r.arr; if (r.special !== undefined) this.specialJunior = r.special
-          r = extractSpecial(this.scoreValueClassic); this.scoreValueClassic = r.arr; if (r.special !== undefined) this.specialClassic = r.special
-          r = extractSpecial(this.scoreValueSenior); this.scoreValueSenior = r.arr; if (r.special !== undefined) this.specialSenior = r.special
-          r = extractSpecial(this.scoreValueSeniorAfterSummer); this.scoreValueSeniorAfterSummer = r.arr; if (r.special !== undefined) this.specialSeniorAfterSummer = r.special
-          r = extractSpecial(this.scoreValueFinale); this.scoreValueFinale = r.arr; if (r.special !== undefined) this.specialFinale = r.special
-        }
-
-        const targetLen = 3;
-        const arrs = [this.scoreValueJunior, this.scoreValueClassic, this.scoreValueSenior, this.scoreValueSeniorAfterSummer, this.scoreValueFinale]
-        arrs.forEach((arr, i) => {
-          if (arr.length > targetLen) arr.splice(targetLen)
-          while (arr.length < targetLen) arr.push(0)
-        })
-      }
-
-      if ('friendship_green_discount' in this.presetsUse) this.friendshipGreenDiscount = this.presetsUse.friendship_green_discount
-      if ('stat_cap_penalties' in this.presetsUse) this.statCapPenalties = this.presetsUse.stat_cap_penalties.map(p => [...p])
-
-      if ('baseScore' in this.presetsUse && Array.isArray(this.presetsUse.baseScore)) {
-        this.baseScore = [...this.presetsUse.baseScore];
-      } else {
-        this.baseScore = [0, 0, 0, 0, 0.07];
-      }
-
-      if ('statValueMultiplier' in this.presetsUse && Array.isArray(this.presetsUse.statValueMultiplier)) {
-        this.statValueMultiplier = [...this.presetsUse.statValueMultiplier];
-        while (this.statValueMultiplier.length < 6) this.statValueMultiplier.push(0.01);
-      } else {
-        this.statValueMultiplier = [0.01, 0.01, 0.01, 0.01, 0.01, 0.005];
-      }
-
-      if ('extraWeight' in this.presetsUse && this.presetsUse.extraWeight != []) {
-        this.extraWeight1 = this.presetsUse.extraWeight[0].map(v => Math.max(-1, Math.min(1, v)));
-        this.extraWeight2 = this.presetsUse.extraWeight[1].map(v => Math.max(-1, Math.min(1, v)));
-        this.extraWeight3 = this.presetsUse.extraWeight[2].map(v => Math.max(-1, Math.min(1, v)));
-        this.extraWeightSummer = (this.presetsUse.extraWeight.length >= 4 ? this.presetsUse.extraWeight[3] : [0, 0, 0, 0, 0]).map(v => Math.max(-1, Math.min(1, v)));
-        
-        const se = this.presetsUse.spirit_explosion || this.presetsUse.spiritExplosion || [[0.16, 0.16, 0.16, 0.06, 0.11]];
-        if (Array.isArray(se) && se.length > 0 && Array.isArray(se[0])) {
-          this.spiritExplosionJunior = (se[0] || [0.16, 0.16, 0.16, 0.06, 0.11]).map(v => Math.max(-1, Math.min(1, v)));
-          this.spiritExplosionClassic = (se[1] || [0.16, 0.16, 0.16, 0.06, 0.11]).map(v => Math.max(-1, Math.min(1, v)));
-          this.spiritExplosionSenior = (se[2] || [0.16, 0.16, 0.16, 0.06, 0.11]).map(v => Math.max(-1, Math.min(1, v)));
-          this.spiritExplosionSeniorAfterSummer = (se[3] || [0.16, 0.16, 0.16, 0.06, 0.11]).map(v => Math.max(-1, Math.min(1, v)));
-          this.spiritExplosionFinale = (se[4] || [0.16, 0.16, 0.16, 0.06, 0.11]).map(v => Math.max(-1, Math.min(1, v)));
-        } else {
-          const single = Array.isArray(se) ? se : [0.16, 0.16, 0.16, 0.06, 0.11];
-          this.spiritExplosionJunior = single.map(v => Math.max(-1, Math.min(1, v)));
-          this.spiritExplosionClassic = single.map(v => Math.max(-1, Math.min(1, v)));
-          this.spiritExplosionSenior = single.map(v => Math.max(-1, Math.min(1, v)));
-          this.spiritExplosionSeniorAfterSummer = single.map(v => Math.max(-1, Math.min(1, v)));
-          this.spiritExplosionFinale = single.map(v => Math.max(-1, Math.min(1, v)));
-        }
-      }
-      else {
-        this.extraWeight1 = [0, 0, 0, 0, 0]
-        this.extraWeight2 = [0, 0, 0, 0, 0]
-        this.extraWeight3 = [0, 0, 0, 0, 0]
-        this.extraWeightSummer = [0, 0, 0, 0, 0]
-        this.spiritExplosionJunior = [0.16, 0.16, 0.16, 0.06, 0.11]
-        this.spiritExplosionClassic = [0.16, 0.16, 0.16, 0.06, 0.11]
-        this.spiritExplosionSenior = [0.16, 0.16, 0.16, 0.06, 0.11]
-        this.spiritExplosionSeniorAfterSummer = [0.16, 0.16, 0.16, 0.06, 0.11]
-        this.spiritExplosionFinale = [0.16, 0.16, 0.16, 0.06, 0.11]
-      }
-
-      if ('specialTraining' in this.presetsUse && Array.isArray(this.presetsUse.specialTraining)) {
-        this.specialJunior = this.presetsUse.specialTraining[0] !== undefined ? this.presetsUse.specialTraining[0] : 0.095
-        this.specialClassic = this.presetsUse.specialTraining[1] !== undefined ? this.presetsUse.specialTraining[1] : 0.095
-        this.specialSenior = this.presetsUse.specialTraining[2] !== undefined ? this.presetsUse.specialTraining[2] : 0.095
-        this.specialSeniorAfterSummer = this.presetsUse.specialTraining[3] !== undefined ? this.presetsUse.specialTraining[3] : 0.095
-        this.specialFinale = this.presetsUse.specialTraining[4] !== undefined ? this.presetsUse.specialTraining[4] : 0
-      }
-
-      if ('witSpecialMultiplier' in this.presetsUse && Array.isArray(this.presetsUse.witSpecialMultiplier)) {
-        this.witSpecialJunior = this.presetsUse.witSpecialMultiplier[0] !== undefined ? this.presetsUse.witSpecialMultiplier[0] : 1.57
-        this.witSpecialClassic = this.presetsUse.witSpecialMultiplier[1] !== undefined ? this.presetsUse.witSpecialMultiplier[1] : 1.37
-      } else {
-        this.witSpecialJunior = 1.57
-        this.witSpecialClassic = 1.37
-      }
-
-      if ('selectedSkills' in this.presetsUse && 'blacklistedSkills' in this.presetsUse && 'skillAssignments' in this.presetsUse && 'activePriorities' in this.presetsUse) {
-        // New format - load directly
-        this.selectedSkills = [...this.presetsUse.selectedSkills];
-        this.blacklistedSkills = [...this.presetsUse.blacklistedSkills];
-        this.skillAssignments = { ...this.presetsUse.skillAssignments };
-        this.activePriorities = [...this.presetsUse.activePriorities];
-
-        // Also populate old system for UI compatibility
-        this.skillLearnBlacklist = this.blacklistedSkills.join(", ");
-
-        // Convert new system back to old format for UI display
-        const skillsByPriority = {};
-        this.selectedSkills.forEach(skillName => {
-          const priority = this.skillAssignments[skillName] || 0;
-          if (!skillsByPriority[priority]) {
-            skillsByPriority[priority] = [];
-          }
-          skillsByPriority[priority].push(skillName);
-        });
-
-        // Reset old system
-        this.skillLearnPriorityList = [{ priority: 0, skills: "" }];
-        this.skillPriorityNum = 1;
-
-        // Populate old system from new system
-        for (let priority = 0; priority <= Math.max(...this.activePriorities); priority++) {
-          if (skillsByPriority[priority] && skillsByPriority[priority].length > 0) {
-            if (priority > 0) {
-              this.addBox();
-            }
-            this.skillLearnPriorityList[priority].skills = skillsByPriority[priority].join(", ");
-          }
-        }
-      } else {
-        // Old format - convert from skill_priority_list and skill_blacklist
-        this.selectedSkills = [];
-        this.blacklistedSkills = [];
-        this.skillAssignments = {};
-        this.activePriorities = [0];
-
-        // Load blacklisted skills
-        if (this.presetsUse.skill_blacklist && this.presetsUse.skill_blacklist !== "") {
-          this.blacklistedSkills = this.presetsUse.skill_blacklist.split(",").map(skill => skill.trim());
-        }
-
-        // Load selected skills from priority list
-        if (this.presetsUse.skill_priority_list && this.presetsUse.skill_priority_list.length > 0) {
-          this.presetsUse.skill_priority_list.forEach((prioritySkills, priorityIndex) => {
-            if (prioritySkills && prioritySkills.length > 0) {
-              const skills = prioritySkills[0].split(",").map(skill => skill.trim());
-              skills.forEach(skill => {
-                if (skill && !this.blacklistedSkills.includes(skill)) {
-                  this.selectedSkills.push(skill);
-                  this.skillAssignments[skill] = priorityIndex;
-                }
-              });
-              if (priorityIndex > 0) {
-                this.activePriorities.push(priorityIndex);
-              }
-            }
-          });
-        }
-      }
-
-      // Legacy skill loading for backward compatibility
-      if ('skill' in this.presetsUse && this.presetsUse.skill != "") {
-        this.skillLearnPriorityList[0].skills = this.presetsUse.skill
-        while (this.skillPriorityNum > 1) {
-          this.deleteBox(0, this.skillPriorityNum - 1)
-        }
-      }
-      else {
-        for (let i = 0; i < this.presetsUse.skill_priority_list.length; i++) {
-          if (i >= this.skillPriorityNum) {
-            this.addBox()
-          }
-          this.skillLearnPriorityList[i].skills = this.presetsUse.skill_priority_list[i]
-        }
-        while (this.presetsUse.skill_priority_list.length != 0 &&
-          this.skillPriorityNum > this.presetsUse.skill_priority_list.length) {
-          this.deleteBox(0, this.skillPriorityNum - 1)
-        }
-      }
+      const presetSkillState = parseSkillSelectionFromSource(this.presetsUse);
+      applySkillSelectionStateToVm(this, presetSkillState);
 
       // Load event weights if present in preset
       if ('event_weights' in this.presetsUse && this.presetsUse.event_weights) {
-        const ew = this.presetsUse.event_weights;
-        if (ew.junior) {
-          this.eventWeightsJunior = {
-            Friendship: ew.junior.Friendship || 35,
-            Speed: ew.junior.Speed || 10,
-            Stamina: ew.junior.Stamina || 10,
-            Power: ew.junior.Power || 10,
-            Guts: ew.junior.Guts || 20,
-            Wits: ew.junior.Wits || ew.junior.Wisdom || 1,
-            Hint: ew.junior.Hint || ew.junior['Skill Hint'] || 100,
-            'Skill Points': ew.junior['Skill Points'] || ew.junior['Skill Pts'] || 10
-          };
-        }
-        if (ew.classic) {
-          this.eventWeightsClassic = {
-            Friendship: ew.classic.Friendship || 20,
-            Speed: ew.classic.Speed || 10,
-            Stamina: ew.classic.Stamina || 10,
-            Power: ew.classic.Power || 10,
-            Guts: ew.classic.Guts || 20,
-            Wits: ew.classic.Wits || ew.classic.Wisdom || 1,
-            Hint: ew.classic.Hint || ew.classic['Skill Hint'] || 100,
-            'Skill Points': ew.classic['Skill Points'] || ew.classic['Skill Pts'] || 10
-          };
-        }
-        if (ew.senior) {
-          this.eventWeightsSenior = {
-            Friendship: ew.senior.Friendship || 0,
-            Speed: ew.senior.Speed || 10,
-            Stamina: ew.senior.Stamina || 10,
-            Power: ew.senior.Power || 10,
-            Guts: ew.senior.Guts || 20,
-            Wits: ew.senior.Wits || ew.senior.Wisdom || 1,
-            Hint: ew.senior.Hint || ew.senior['Skill Hint'] || 100,
-            'Skill Points': ew.senior['Skill Points'] || ew.senior['Skill Pts'] || 10
-          };
-        }
+        applyEventWeightsSourceToVm(this, this.presetsUse.event_weights);
       } else {
         // Reset to defaults if not in preset
         this.resetEventWeights();
       }
 
-      // 读取青春杯配置（如果存在）
-      if ('ura_config' in this.presetsUse) {
-        this.skillEventWeight = [...this.presetsUse.ura_config.skillEventWeight];
-        this.resetSkillEventWeightList = this.presetsUse.ura_config.resetSkillEventWeightList;
-      } else {
-        this.skillEventWeight = [0, 0, 0];
-        this.resetSkillEventWeightList = '';
-      }
-      if ('auharuhai_config' in this.presetsUse) {
-        this.preliminaryRoundSelections = [...this.presetsUse.auharuhai_config.preliminaryRoundSelections];
-        this.aoharuTeamNameSelection = this.presetsUse.auharuhai_config.aoharuTeamNameSelection;
-      } else {
-        this.preliminaryRoundSelections = [2, 1, 1, 1];
-        this.aoharuTeamNameSelection = 4;
-      }
-      if ('mant_config' in this.presetsUse && this.presetsUse.mant_config.item_tiers) {
-        this.mantItemTiers = this.presetsUse.mant_config.item_tiers;
-        this.mantTierCount = this.presetsUse.mant_config.tier_count || 2;
-        this.mantMigrateLegacyTiers();
-        this.mantWhistleThreshold = this.presetsUse.mant_config.whistle_threshold ?? 20;
-        this.mantWhistleFocusSummer = this.presetsUse.mant_config.whistle_focus_summer ?? true;
-        this.mantMegaSmallThreshold = this.presetsUse.mant_config.mega_small_threshold ?? 60;
-        this.mantMegaMediumThreshold = this.presetsUse.mant_config.mega_medium_threshold ?? 70;
-        this.mantMegaLargeThreshold = this.presetsUse.mant_config.mega_large_threshold ?? 80;
-        this.mantTrainingWeightsThreshold = this.presetsUse.mant_config.training_weights_threshold ?? 60;
-      } else {
-        this.mantItemTiers = this.mantGetDefaultTiers();
-        this.mantTierCount = 2;
-        this.mantWhistleThreshold = 20;
-        this.mantWhistleFocusSummer = true;
-        this.mantMegaSmallThreshold = 60;
-        this.mantMegaMediumThreshold = 70;
-        this.mantMegaLargeThreshold = 80;
-        this.mantTrainingWeightsThreshold = 60;
-      }
+      applyScenarioConfigSourceToVm(this, this.presetsUse, {
+        getDefaultMantItemTiers: () => this.mantGetDefaultTiers(),
+        migrateMantTiers: () => this.mantMigrateLegacyTiers(),
+      });
 
     },
     showModal: function () {
@@ -4106,6 +3427,7 @@ export default {
       $('#create-task-list-modal').modal('hide');
     },
     loadFromTask: function (task) {
+      const scoringDefaults = createScoringDefaults();
       this.isEditMode = true;
       this.editingTaskId = task.task_id || null;
       this.editingTaskStatus = task.task_status;
@@ -4124,173 +3446,17 @@ export default {
       } else {
         this.selectedExecuteMode = Number(task.task_execute_mode || 3);
       }
-      this.selectedScenario = data.scenario || 1;
-      this.cureAsapConditions = data.cure_asap_conditions || this.cureAsapConditions;
-      if (data.expect_attribute && data.expect_attribute.length >= 5) {
-        this.expectSpeedValue = data.expect_attribute[0];
-        this.expectStaminaValue = data.expect_attribute[1];
-        this.expectPowerValue = data.expect_attribute[2];
-        this.expectWillValue = data.expect_attribute[3];
-        this.expectIntelligenceValue = data.expect_attribute[4];
-      }
-      if (data.follow_support_card_name) {
-        this.selectedSupportCard = { name: data.follow_support_card_name };
-      }
-      this.supportCardLevel = data.follow_support_card_level || this.supportCardLevel;
-      this.extraRace = data.extra_race_list || [];
-      this.clockUseLimit = data.clock_use_limit !== undefined ? data.clock_use_limit : this.clockUseLimit;
-      this.restTreshold = data.rest_treshold || data.rest_threshold || this.restTreshold;
-      this.compensateFailure = data.compensate_failure !== false;
-      this.failureRateDivisor = data.failure_rate_divisor !== undefined ? data.failure_rate_divisor : this.failureRateDivisor;
-      this.summerScoreThreshold = data.summer_score_threshold !== undefined ? data.summer_score_threshold : 0.17;
-      this.witRaceSearchThreshold = data.wit_race_search_threshold !== undefined ? data.wit_race_search_threshold : 0.08;
-      this.useLastParents = data.use_last_parents === true;
-      this.overrideInsufficientFansForcedRaces = data.override_insufficient_fans_forced_races === true;
-      this.learnSkillThreshold = data.learn_skill_threshold || this.learnSkillThreshold;
-      this.recoverTP = data.allow_recover_tp || 0;
-      this.manualPurchase = data.manual_purchase_at_end || false;
-      this.skipDoubleCircleUnlessHighHint = data.skip_double_circle_unless_high_hint || false;
-      this.hintBoostCharacters = Array.isArray(data.hint_boost_characters) ? [...data.hint_boost_characters] : [];
-      this.hintBoostMultiplier = data.hint_boost_multiplier !== undefined ? data.hint_boost_multiplier : 100;
-      if (Array.isArray(data.friendship_score_groups) && data.friendship_score_groups.length > 0) {
-        this.friendshipScoreGroups = data.friendship_score_groups.map(g => ({ characters: [...(g.characters || [])], multiplier: g.multiplier !== undefined ? g.multiplier : 100, search: '', expanded: false }));
-      } else {
-        this.friendshipScoreGroups = [{ characters: [], multiplier: 100, search: '', expanded: false }, { characters: [], multiplier: 100, search: '', expanded: false }];
-      }
-      this.learnSkillOnlyUserProvided = data.learn_skill_only_user_provided || false;
-      if (data.tactic_list && data.tactic_list.length >= 3) {
-        this.selectedRaceTactic1 = data.tactic_list[0];
-        this.selectedRaceTactic2 = data.tactic_list[1];
-        this.selectedRaceTactic3 = data.tactic_list[2];
-      }
-      this.motivationThresholdYear1 = data.motivation_threshold_year1 || 3;
-      this.motivationThresholdYear2 = data.motivation_threshold_year2 || 4;
-      this.motivationThresholdYear3 = data.motivation_threshold_year3 || 4;
-      this.prioritizeRecreation = data.prioritize_recreation || false;
-      if (data.pal_name) this.palSelected = data.pal_name;
-      if (data.pal_thresholds && this.palSelected) {
-        this.palCardStore[this.palSelected] = data.pal_thresholds;
-      }
-      if (data.pal_friendship_score) this.palFriendshipScore = [...data.pal_friendship_score];
-      if (data.pal_card_multiplier !== undefined) this.palCardMultiplier = data.pal_card_multiplier;
-      if (data.npc_weight && Array.isArray(data.npc_weight)) {
-        this.npcWeight = [...data.npc_weight];
-      }
-      if (data.friendship_green_discount !== undefined) this.friendshipGreenDiscount = data.friendship_green_discount;
-      if (data.stat_cap_penalties) this.statCapPenalties = data.stat_cap_penalties.map(p => [...p]);
-      if (data.extra_weight && data.extra_weight.length >= 3) {
-        this.extraWeight1 = data.extra_weight[0].map(v => Math.max(-1, Math.min(1, v)));
-        this.extraWeight2 = data.extra_weight[1].map(v => Math.max(-1, Math.min(1, v)));
-        this.extraWeight3 = data.extra_weight[2].map(v => Math.max(-1, Math.min(1, v)));
-        if (data.extra_weight.length >= 4) {
-          this.extraWeightSummer = data.extra_weight[3].map(v => Math.max(-1, Math.min(1, v)));
-        }
-      }
-      if (data.base_score) this.baseScore = [...data.base_score];
-      if (data.spirit_explosion && data.spirit_explosion.length >= 5) {
-        this.spiritExplosionJunior = data.spirit_explosion[0].map(v => Math.max(-1, Math.min(1, v)));
-        this.spiritExplosionClassic = data.spirit_explosion[1].map(v => Math.max(-1, Math.min(1, v)));
-        this.spiritExplosionSenior = data.spirit_explosion[2].map(v => Math.max(-1, Math.min(1, v)));
-        this.spiritExplosionSeniorAfterSummer = data.spirit_explosion[3].map(v => Math.max(-1, Math.min(1, v)));
-        this.spiritExplosionFinale = data.spirit_explosion[4].map(v => Math.max(-1, Math.min(1, v)));
-      }
-      if (data.score_value && data.score_value.length >= 5) {
-        this.scoreValueJunior = [...data.score_value[0]];
-        this.scoreValueClassic = [...data.score_value[1]];
-        this.scoreValueSenior = [...data.score_value[2]];
-        this.scoreValueSeniorAfterSummer = [...data.score_value[3]];
-        this.scoreValueFinale = [...data.score_value[4]];
-
-        // Extract special training values if present (last element beyond base 3)
-        if (this.selectedScenario === 2) {
-          const extractSpecial = (arr) => {
-            if (arr.length > 3) { const s = arr[arr.length - 1]; return { arr: arr.slice(0, arr.length - 1), special: s } }
-            return { arr, special: undefined }
-          }
-          let r
-          r = extractSpecial(this.scoreValueJunior); this.scoreValueJunior = r.arr; if (r.special !== undefined) this.specialJunior = r.special;
-          r = extractSpecial(this.scoreValueClassic); this.scoreValueClassic = r.arr; if (r.special !== undefined) this.specialClassic = r.special;
-          r = extractSpecial(this.scoreValueSenior); this.scoreValueSenior = r.arr; if (r.special !== undefined) this.specialSenior = r.special;
-          r = extractSpecial(this.scoreValueSeniorAfterSummer); this.scoreValueSeniorAfterSummer = r.arr; if (r.special !== undefined) this.specialSeniorAfterSummer = r.special;
-          r = extractSpecial(this.scoreValueFinale); this.scoreValueFinale = r.arr; if (r.special !== undefined) this.specialFinale = r.special;
-        }
-
-        // Normalize to 3 elements
-        [this.scoreValueJunior, this.scoreValueClassic, this.scoreValueSenior, this.scoreValueSeniorAfterSummer, this.scoreValueFinale].forEach(arr => {
-          if (arr.length > 3) arr.splice(3);
-          while (arr.length < 3) arr.push(0);
-        });
-      }
-      if (data.stat_value_multiplier) this.statValueMultiplier = [...data.stat_value_multiplier];
-      if (data.wit_special_multiplier && Array.isArray(data.wit_special_multiplier) && data.wit_special_multiplier.length >= 2) {
-        this.witSpecialJunior = data.wit_special_multiplier[0];
-        this.witSpecialClassic = data.wit_special_multiplier[1];
-      }
-      if (data.learn_skill_list && data.learn_skill_list.length > 0) {
-        this.selectedSkills = [];
-        this.skillAssignments = {};
-        this.activePriorities = [0];
-        data.learn_skill_list.forEach((skills, priority) => {
-          if (skills && skills.length > 0) {
-            skills.forEach(skillName => {
-              if (skillName && !this.selectedSkills.includes(skillName)) {
-                this.selectedSkills.push(skillName);
-                this.skillAssignments[skillName] = priority;
-              }
-            });
-            if (priority > 0 && !this.activePriorities.includes(priority)) {
-              this.activePriorities.push(priority);
-            }
-          }
-        });
-      }
-      if (data.learn_skill_blacklist) this.blacklistedSkills = [...data.learn_skill_blacklist];
-      if (data.event_weights) {
-        const ew = data.event_weights;
-        if (ew.junior) {
-          this.eventWeightsJunior = {
-            Friendship: ew.junior.Friendship || 35, Speed: ew.junior.Speed || 10, Stamina: ew.junior.Stamina || 10,
-            Power: ew.junior.Power || 10, Guts: ew.junior.Guts || 20, Wits: ew.junior.Wisdom || 1,
-            Hint: ew.junior['Skill Hint'] || 100, 'Skill Points': ew.junior['Skill Pts'] || 10
-          };
-        }
-        if (ew.classic) {
-          this.eventWeightsClassic = {
-            Friendship: ew.classic.Friendship || 20, Speed: ew.classic.Speed || 10, Stamina: ew.classic.Stamina || 10,
-            Power: ew.classic.Power || 10, Guts: ew.classic.Guts || 20, Wits: ew.classic.Wisdom || 1,
-            Hint: ew.classic['Skill Hint'] || 100, 'Skill Points': ew.classic['Skill Pts'] || 10
-          };
-        }
-        if (ew.senior) {
-          this.eventWeightsSenior = {
-            Friendship: ew.senior.Friendship || 0, Speed: ew.senior.Speed || 10, Stamina: ew.senior.Stamina || 10,
-            Power: ew.senior.Power || 10, Guts: ew.senior.Guts || 20, Wits: ew.senior.Wisdom || 1,
-            Hint: ew.senior['Skill Hint'] || 100, 'Skill Points': ew.senior['Skill Pts'] || 10
-          };
-        }
-      }
-      if (data.event_choices) this.eventChoicesSelected = { ...data.event_choices };
-      if (data.ura_config) {
-        this.skillEventWeight = [...(data.ura_config.skillEventWeight || [0, 0, 0])];
-        this.resetSkillEventWeightList = Array.isArray(data.ura_config.resetSkillEventWeightList) 
-          ? data.ura_config.resetSkillEventWeightList.join(', ') 
-          : (data.ura_config.resetSkillEventWeightList || '');
-      }
-      if (data.aoharu_config) {
-        this.preliminaryRoundSelections = [...(data.aoharu_config.preliminaryRoundSelections || [2, 1, 1, 1])];
-        this.aoharuTeamNameSelection = data.aoharu_config.aoharuTeamNameSelection || 4;
-      }
-      if (data.mant_config && data.mant_config.item_tiers) {
-        this.mantItemTiers = data.mant_config.item_tiers;
-        this.mantTierCount = data.mant_config.tier_count || 2;
-        this.mantMigrateLegacyTiers();
-        this.mantWhistleThreshold = data.mant_config.whistle_threshold ?? 20;
-        this.mantWhistleFocusSummer = data.mant_config.whistle_focus_summer ?? true;
-        this.mantMegaSmallThreshold = data.mant_config.mega_small_threshold ?? 60;
-        this.mantMegaMediumThreshold = data.mant_config.mega_medium_threshold ?? 70;
-        this.mantMegaLargeThreshold = data.mant_config.mega_large_threshold ?? 80;
-        this.mantTrainingWeightsThreshold = data.mant_config.training_weights_threshold ?? 60;
-      }
+      applyTaskFormStateFromSource(this, data);
+      applyTaskPalConfigSourceToVm(this, data);
+      applyScoringSourceToVm(this, data, scoringDefaults);
+      const taskSkillState = parseSkillSelectionFromSource(data);
+      applySkillSelectionStateToVm(this, taskSkillState);
+      applyEventWeightsSourceToVm(this, data.event_weights);
+      applyEventChoicesSourceToVm(this, data.event_choices);
+      applyScenarioConfigSourceToVm(this, data, {
+        getDefaultMantItemTiers: () => this.mantGetDefaultTiers(),
+        migrateMantTiers: () => this.mantMigrateLegacyTiers(),
+      });
       this.$nextTick(() => {
         this.normalizeScoreArrays(3);
         const root = this.$refs.scrollPane;
@@ -4299,183 +3465,20 @@ export default {
       });
     },
     getPresets: function () {
-      return this.axios.post("/umamusume/get-presets", "").then(
-        res => {
-          // All presets now come from the server (including starter presets)
-          this.cultivatePresets = Array.isArray(res.data) ? res.data : []
-        }
-      ).catch(() => {
-        this.cultivatePresets = []
-      })
+      return fetchCultivatePresets(this.axios).then((presets) => {
+        this.cultivatePresets = presets;
+        return presets;
+      }).catch(() => {
+        this.cultivatePresets = [];
+        return [];
+      });
     },
     addPresets: function (successMessage = 'Preset saved successfully') {
       if (this.isSavingPreset) return Promise.resolve();
       this.isSavingPreset = true;
-      // Convert new skill system to old format for backward compatibility
-      var skill_priority_list = [];
-      var skill_blacklist = this.blacklistedSkills.join(", ");
-
-      // Group selected skills by priority
-      const skillsByPriority = {};
-      this.selectedSkills.forEach(skillName => {
-        const priority = this.skillAssignments[skillName] || 0;
-        if (!skillsByPriority[priority]) {
-          skillsByPriority[priority] = [];
-        }
-        skillsByPriority[priority].push(skillName);
-      });
-
-      // Convert to old format (skill_priority_list)
-      for (let priority = 0; priority <= Math.max(...this.activePriorities); priority++) {
-        if (skillsByPriority[priority] && skillsByPriority[priority].length > 0) {
-          skill_priority_list.push([skillsByPriority[priority].join(", ")]);
-        } else {
-          skill_priority_list.push([""]);
-        }
-      }
-
-      let preset = {
-        name: this.presetNameEdit,
-        event_overrides: this.buildEventChoices(),
-        compensate_failure: this.compensateFailure,
-        failure_rate_divisor: this.failureRateDivisor,
-        use_last_parents: this.useLastParents,
-        override_insufficient_fans_forced_races: this.overrideInsufficientFansForcedRaces,
-        scenario: this.selectedScenario,
-        race_list: this.extraRace,
-        skill_priority_list: skill_priority_list,
-        skill_blacklist: skill_blacklist,
-        event_weights: {
-          junior: {
-            Friendship: this.eventWeightsJunior.Friendship,
-            Speed: this.eventWeightsJunior.Speed,
-            Stamina: this.eventWeightsJunior.Stamina,
-            Power: this.eventWeightsJunior.Power,
-            Guts: this.eventWeightsJunior.Guts,
-            Wisdom: this.eventWeightsJunior.Wits,
-            'Skill Hint': this.eventWeightsJunior.Hint,
-            'Skill Pts': this.eventWeightsJunior['Skill Points']
-          },
-          classic: {
-            Friendship: this.eventWeightsClassic.Friendship,
-            Speed: this.eventWeightsClassic.Speed,
-            Stamina: this.eventWeightsClassic.Stamina,
-            Power: this.eventWeightsClassic.Power,
-            Guts: this.eventWeightsClassic.Guts,
-            Wisdom: this.eventWeightsClassic.Wits,
-            'Skill Hint': this.eventWeightsClassic.Hint,
-            'Skill Pts': this.eventWeightsClassic['Skill Points']
-          },
-          senior: {
-            Friendship: this.eventWeightsSenior.Friendship,
-            Speed: this.eventWeightsSenior.Speed,
-            Stamina: this.eventWeightsSenior.Stamina,
-            Power: this.eventWeightsSenior.Power,
-            Guts: this.eventWeightsSenior.Guts,
-            Wisdom: this.eventWeightsSenior.Wits,
-            'Skill Hint': this.eventWeightsSenior.Hint,
-            'Skill Pts': this.eventWeightsSenior['Skill Points']
-          }
-        },
-        cureAsapConditions: this.cureAsapConditions,
-        expect_attribute: [this.expectSpeedValue, this.expectStaminaValue, this.expectPowerValue, this.expectWillValue, this.expectIntelligenceValue],
-        follow_support_card: this.selectedSupportCard,
-        follow_support_card_level: this.supportCardLevel,
-        clock_use_limit: this.clockUseLimit,
-        rest_threshold: this.restTreshold,  
-        summer_score_threshold: this.summerScoreThreshold,
-        wit_race_search_threshold: this.witRaceSearchThreshold,
-        learn_skill_threshold: this.learnSkillThreshold,
-        learn_skill_only_user_provided: this.learnSkillOnlyUserProvided,
-        allow_recover_tp: this.recoverTP,
-        manual_purchase_at_end: this.manualPurchase,
-        skip_double_circle_unless_high_hint: this.skipDoubleCircleUnlessHighHint,
-        hint_boost_characters: [...this.hintBoostCharacters],
-        hint_boost_multiplier: this.hintBoostMultiplier,
-        friendship_score_groups: this.friendshipScoreGroups.map(g => ({ characters: [...g.characters], multiplier: g.multiplier })),
-        race_tactic_1: this.selectedRaceTactic1,
-        race_tactic_2: this.selectedRaceTactic2,
-        race_tactic_3: this.selectedRaceTactic3,
-        tactic_actions: this.raceTacticConditions,
-        extraWeight: [
-          this.extraWeight1.map(v => Math.max(-1, Math.min(1, v))),
-          this.extraWeight2.map(v => Math.max(-1, Math.min(1, v))),
-          this.extraWeight3.map(v => Math.max(-1, Math.min(1, v))),
-          this.extraWeightSummer.map(v => Math.max(-1, Math.min(1, v)))
-        ],
-        spirit_explosion: [
-          this.spiritExplosionJunior.map(v => Math.max(-1, Math.min(1, v))),
-          this.spiritExplosionClassic.map(v => Math.max(-1, Math.min(1, v))),
-          this.spiritExplosionSenior.map(v => Math.max(-1, Math.min(1, v))),
-          this.spiritExplosionSeniorAfterSummer.map(v => Math.max(-1, Math.min(1, v))),
-          this.spiritExplosionFinale.map(v => Math.max(-1, Math.min(1, v)))
-        ],
-        specialTraining: [
-          this.specialJunior,
-          this.specialClassic,
-          this.specialSenior,
-          this.specialSeniorAfterSummer,
-          this.specialFinale
-        ],
-        witSpecialMultiplier: [this.witSpecialJunior, this.witSpecialClassic],
-        scoreValue: [
-          this.scoreValueJunior,
-          this.scoreValueClassic,
-          this.scoreValueSenior,
-          this.scoreValueSeniorAfterSummer,
-          this.scoreValueFinale
-        ],
-        baseScore: [...this.baseScore],
-        statValueMultiplier: [...this.statValueMultiplier],
-        // Motivation thresholds for trip decisions
-        motivation_threshold_year1: this.motivationThresholdYear1,
-        motivation_threshold_year2: this.motivationThresholdYear2,
-        motivation_threshold_year3: this.motivationThresholdYear3,
-        prioritize_recreation: this.prioritizeRecreation,
-
-        pal_selected: this.palSelected,
-        pal_card_store: Object.fromEntries(Object.entries(this.palCardStore).filter(([k, v]) => Array.isArray(v) && v.length > 0)),
-
-        pal_friendship_score: [...this.palFriendshipScore],
-        pal_card_multiplier: this.palCardMultiplier,
-        npc_weight: [...this.npcWeight],
-        friendship_green_discount: this.friendshipGreenDiscount,
-        stat_cap_penalties: this.statCapPenalties.map(p => [...p]),
-        scoring_version: 2,
-
-        selectedSkills: [...this.selectedSkills],
-        blacklistedSkills: [...this.blacklistedSkills],
-        skillAssignments: { ...this.skillAssignments },
-        activePriorities: [...this.activePriorities]
-      }
-      // 仅当剧本对应时, 添加URA或青春杯配置
-      if (this.selectedScenario === 1) {
-        preset.ura_config = {
-          skillEventWeight: [...this.skillEventWeight],
-          resetSkillEventWeightList: this.resetSkillEventWeightList
-        };
-      } else if (this.selectedScenario === 2) {
-        preset.auharuhai_config = {
-          preliminaryRoundSelections: [...this.preliminaryRoundSelections],
-          aoharuTeamNameSelection: this.aoharuTeamNameSelection
-        };
-      } else if (this.selectedScenario === 3) {
-        preset.mant_config = {
-          item_tiers: { ...this.mantItemTiers },
-          tier_count: this.mantTierCount,
-          whistle_threshold: this.mantWhistleThreshold,
-          whistle_focus_summer: this.mantWhistleFocusSummer,
-          mega_small_threshold: this.mantMegaSmallThreshold,
-          mega_medium_threshold: this.mantMegaMediumThreshold,
-          mega_large_threshold: this.mantMegaLargeThreshold,
-          training_weights_threshold: this.mantTrainingWeightsThreshold
-        };
-      }
-      let payload = {
-        "preset": JSON.stringify(preset)
-      }
-      const savedName = this.presetNameEdit
-      return this.axios.post("/umamusume/add-presets", JSON.stringify(payload)).then(
+      const savedName = (this.presetNameEdit || '').trim();
+      const preset = buildPresetPayloadFromVm(this, savedName);
+      return saveCultivatePreset(this.axios, preset).then(
         () => {
           return this.getPresets().then(() => {
             const saved = this.cultivatePresets.find(p => p.name === savedName)
@@ -4524,9 +3527,8 @@ export default {
       if (this.isSavingPreset) return;
       if (!this.deletePresetName) return;
       if (!window.confirm(`Delete preset \"${this.deletePresetName}\"?`)) return;
-      const payload = { name: this.deletePresetName };
       this.isSavingPreset = true;
-      this.axios.post("/umamusume/delete-preset", JSON.stringify(payload)).then(() => {
+      deleteCultivatePreset(this.axios, this.deletePresetName).then(() => {
         return this.getPresets();
       }).then(() => {
         this.presetAction = null;
@@ -4539,86 +3541,7 @@ export default {
       });
     },
     exportPreset() {
-      var skill_priority_list = [];
-      var skill_blacklist = this.blacklistedSkills.join(", ");
-      const skillsByPriority = {};
-      this.selectedSkills.forEach(skillName => {
-        const priority = this.skillAssignments[skillName] || 0;
-        if (!skillsByPriority[priority]) skillsByPriority[priority] = [];
-        skillsByPriority[priority].push(skillName);
-      });
-      for (let priority = 0; priority <= Math.max(...this.activePriorities, 0); priority++) {
-        if (skillsByPriority[priority] && skillsByPriority[priority].length > 0) {
-          skill_priority_list.push([skillsByPriority[priority].join(", ")]);
-        } else {
-          skill_priority_list.push([""]);
-        }
-      }
-      let preset = {
-        name: 'Shared Preset',
-        event_overrides: this.buildEventChoices(),
-        compensate_failure: this.compensateFailure,
-        failure_rate_divisor: this.failureRateDivisor,
-        use_last_parents: this.useLastParents,
-        override_insufficient_fans_forced_races: this.overrideInsufficientFansForcedRaces,
-        scenario: this.selectedScenario,
-        race_list: this.extraRace,
-        skill_priority_list: skill_priority_list,
-        skill_blacklist: skill_blacklist,
-        event_weights: {
-          junior: { Friendship: this.eventWeightsJunior.Friendship, Speed: this.eventWeightsJunior.Speed, Stamina: this.eventWeightsJunior.Stamina, Power: this.eventWeightsJunior.Power, Guts: this.eventWeightsJunior.Guts, Wisdom: this.eventWeightsJunior.Wits, 'Skill Hint': this.eventWeightsJunior.Hint, 'Skill Pts': this.eventWeightsJunior['Skill Points'] },
-          classic: { Friendship: this.eventWeightsClassic.Friendship, Speed: this.eventWeightsClassic.Speed, Stamina: this.eventWeightsClassic.Stamina, Power: this.eventWeightsClassic.Power, Guts: this.eventWeightsClassic.Guts, Wisdom: this.eventWeightsClassic.Wits, 'Skill Hint': this.eventWeightsClassic.Hint, 'Skill Pts': this.eventWeightsClassic['Skill Points'] },
-          senior: { Friendship: this.eventWeightsSenior.Friendship, Speed: this.eventWeightsSenior.Speed, Stamina: this.eventWeightsSenior.Stamina, Power: this.eventWeightsSenior.Power, Guts: this.eventWeightsSenior.Guts, Wisdom: this.eventWeightsSenior.Wits, 'Skill Hint': this.eventWeightsSenior.Hint, 'Skill Pts': this.eventWeightsSenior['Skill Points'] }
-        },
-        cureAsapConditions: this.cureAsapConditions,
-        expect_attribute: [this.expectSpeedValue, this.expectStaminaValue, this.expectPowerValue, this.expectWillValue, this.expectIntelligenceValue],
-        follow_support_card: this.selectedSupportCard,
-        follow_support_card_level: this.supportCardLevel,
-        clock_use_limit: this.clockUseLimit,
-        rest_threshold: this.restTreshold,
-        summer_score_threshold: this.summerScoreThreshold,
-        wit_race_search_threshold: this.witRaceSearchThreshold,
-        learn_skill_threshold: this.learnSkillThreshold,
-        learn_skill_only_user_provided: this.learnSkillOnlyUserProvided,
-        allow_recover_tp: this.recoverTP,
-        manual_purchase_at_end: this.manualPurchase,
-        skip_double_circle_unless_high_hint: this.skipDoubleCircleUnlessHighHint,
-        hint_boost_characters: [...this.hintBoostCharacters],
-        hint_boost_multiplier: this.hintBoostMultiplier,
-        friendship_score_groups: this.friendshipScoreGroups.map(g => ({ characters: [...g.characters], multiplier: g.multiplier })),
-        race_tactic_1: this.selectedRaceTactic1,
-        race_tactic_2: this.selectedRaceTactic2,
-        race_tactic_3: this.selectedRaceTactic3,
-        tactic_actions: this.raceTacticConditions,
-        extraWeight: [this.extraWeight1.map(v => Math.max(-1, Math.min(1, v))), this.extraWeight2.map(v => Math.max(-1, Math.min(1, v))), this.extraWeight3.map(v => Math.max(-1, Math.min(1, v))), this.extraWeightSummer.map(v => Math.max(-1, Math.min(1, v)))],
-        spirit_explosion: [this.spiritExplosionJunior.map(v => Math.max(-1, Math.min(1, v))), this.spiritExplosionClassic.map(v => Math.max(-1, Math.min(1, v))), this.spiritExplosionSenior.map(v => Math.max(-1, Math.min(1, v))), this.spiritExplosionSeniorAfterSummer.map(v => Math.max(-1, Math.min(1, v))), this.spiritExplosionFinale.map(v => Math.max(-1, Math.min(1, v)))],
-        specialTraining: [this.specialJunior, this.specialClassic, this.specialSenior, this.specialSeniorAfterSummer, this.specialFinale],
-        witSpecialMultiplier: [this.witSpecialJunior, this.witSpecialClassic],
-        scoreValue: [this.scoreValueJunior, this.scoreValueClassic, this.scoreValueSenior, this.scoreValueSeniorAfterSummer, this.scoreValueFinale],
-        baseScore: [...this.baseScore],
-        statValueMultiplier: [...this.statValueMultiplier],
-        motivation_threshold_year1: this.motivationThresholdYear1,
-        motivation_threshold_year2: this.motivationThresholdYear2,
-        motivation_threshold_year3: this.motivationThresholdYear3,
-        prioritize_recreation: this.prioritizeRecreation,
-        pal_selected: this.palSelected,
-        pal_card_store: Object.fromEntries(Object.entries(this.palCardStore).filter(([k, v]) => Array.isArray(v) && v.length > 0)),
-        pal_friendship_score: [...this.palFriendshipScore],
-        pal_card_multiplier: this.palCardMultiplier,
-        npc_weight: [...this.npcWeight],
-        friendship_green_discount: this.friendshipGreenDiscount,
-        stat_cap_penalties: this.statCapPenalties.map(p => [...p]),
-        scoring_version: 2,
-        selectedSkills: [...this.selectedSkills],
-        blacklistedSkills: [...this.blacklistedSkills],
-        skillAssignments: { ...this.skillAssignments },
-        activePriorities: [...this.activePriorities]
-      };
-      if (this.selectedScenario === 1) {
-        preset.ura_config = { skillEventWeight: [...this.skillEventWeight], resetSkillEventWeightList: this.resetSkillEventWeightList };
-      } else if (this.selectedScenario === 2) {
-        preset.auharuhai_config = { preliminaryRoundSelections: [...this.preliminaryRoundSelections], aoharuTeamNameSelection: this.aoharuTeamNameSelection };
-      }
+      const preset = buildPresetPayloadFromVm(this, 'Shared Preset');
       const encoded = encodePreset(preset);
       if (encoded) {
         this.sharePresetText = encoded;
@@ -4686,28 +3609,16 @@ export default {
     },
     // New methods for dynamic priority system
     getActivePriorities: function () {
-      return this.activePriorities;
+      return getSortedPriorities(this.activePriorities);
     },
     getSelectedSkillsForPriority: function (priority) {
-      return this.selectedSkills.filter(skillName => {
-        return this.skillAssignments[skillName] === priority;
-      });
+      return getSkillsForPriority(this.selectedSkills, this.skillAssignments, priority);
     },
     addPriority: function () {
-      const maxPriority = Math.max(...this.activePriorities);
-      this.activePriorities.push(maxPriority + 1);
+      this.applySkillState(addPriorityLevel(this.currentSkillState()));
     },
     removeLastPriority: function () {
-      if (this.activePriorities.length > 1) {
-        const removedPriority = this.activePriorities.pop();
-        // Move skills from removed priority to the highest remaining priority
-        Object.keys(this.skillAssignments).forEach(skillName => {
-          if (this.skillAssignments[skillName] === removedPriority) {
-            const newHighestPriority = Math.max(...this.activePriorities);
-            this.skillAssignments[skillName] = newHighestPriority;
-          }
-        });
-      }
+      this.applySkillState(removeLastPriorityLevel(this.currentSkillState()));
     },
     clearSkillFilters() {
       this.skillFilter = {

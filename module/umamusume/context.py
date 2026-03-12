@@ -12,7 +12,8 @@ from module.umamusume.constants.scoring_constants import (
     DEFAULT_SUMMER_SCORE_THRESHOLD, DEFAULT_STAT_VALUE_MULTIPLIER,
     DEFAULT_WIT_SPECIAL_MULTIPLIER, DEFAULT_SCORE_VALUE,
     DEFAULT_FRIENDSHIP_GREEN_DISCOUNT, DEFAULT_FAILURE_RATE_DIVISOR,
-    DEFAULT_STAT_CAP_PENALTIES
+    DEFAULT_STAT_CAP_PENALTIES, DEFAULT_SPECIAL_WEIGHTS,
+    DEFAULT_WIT_RACE_SEARCH_THRESHOLD
 )
 import bot.base.log as logger
 
@@ -84,6 +85,7 @@ class CultivateContextDetail:
     parse_factor_done: bool
     extra_weight: list
     spirit_explosion: list
+    special_training: list
     manual_purchase_completed: bool
     final_skill_sweep_active: bool
     user_provided_priority: bool
@@ -94,6 +96,7 @@ class CultivateContextDetail:
     pal_card_multiplier: float
     base_score: list
     summer_score_threshold: float
+    wit_race_search_threshold: float
     stat_value_multiplier: list
     wit_special_multiplier: list
     skip_double_circle_unless_high_hint: bool
@@ -121,7 +124,8 @@ class CultivateContextDetail:
         self.allow_recover_tp = False
         self.parse_factor_done = False
         self.extra_weight = []
-        self.spirit_explosion = [0.16, 0.16, 0.16, 0.06, 0.11]
+        self.spirit_explosion = list(DEFAULT_SPIRIT_EXPLOSION)
+        self.special_training = list(DEFAULT_SPECIAL_WEIGHTS)
         self.manual_purchase_completed = False
         self.final_skill_sweep_active = False
         self.user_provided_priority = False
@@ -138,6 +142,7 @@ class CultivateContextDetail:
         self.wit_special_multiplier = list(DEFAULT_WIT_SPECIAL_MULTIPLIER)
         self.friendship_green_discount = DEFAULT_FRIENDSHIP_GREEN_DISCOUNT
         self.stat_cap_penalties = list(DEFAULT_STAT_CAP_PENALTIES)
+        self.wit_race_search_threshold = DEFAULT_WIT_RACE_SEARCH_THRESHOLD
 
     def reset_skill_learn(self):
         self.learn_skill_done = False
@@ -194,6 +199,7 @@ def build_context(task: UmamusumeTask, ctrl) -> UmamusumeContext:
             detail.spirit_explosion = list(se) if se else list(DEFAULT_SPIRIT_EXPLOSION)
         except Exception:
             detail.spirit_explosion = list(DEFAULT_SPIRIT_EXPLOSION)
+        detail.special_training = list(getattr(task.detail, 'special_training', DEFAULT_SPECIAL_WEIGHTS))
         
         detail.rest_threshold = getattr(task.detail, 'rest_threshold', 48)
         detail.motivation_threshold_year1 = int(getattr(task.detail, 'motivation_threshold_year1', 3))
@@ -214,6 +220,7 @@ def build_context(task: UmamusumeTask, ctrl) -> UmamusumeContext:
         detail.use_last_parents = getattr(task.detail, 'use_last_parents', False)
         detail.base_score = list(getattr(task.detail, 'base_score', DEFAULT_BASE_SCORES))
         detail.summer_score_threshold = float(getattr(task.detail, 'summer_score_threshold', DEFAULT_SUMMER_SCORE_THRESHOLD))
+        detail.wit_race_search_threshold = float(getattr(task.detail, 'wit_race_search_threshold', DEFAULT_WIT_RACE_SEARCH_THRESHOLD))
         detail.stat_value_multiplier = list(getattr(task.detail, 'stat_value_multiplier', DEFAULT_STAT_VALUE_MULTIPLIER))
         detail.wit_special_multiplier = list(getattr(task.detail, 'wit_special_multiplier', DEFAULT_WIT_SPECIAL_MULTIPLIER))
         detail.stat_cap_penalties = list(getattr(task.detail, 'stat_cap_penalties', DEFAULT_STAT_CAP_PENALTIES))

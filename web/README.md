@@ -27,3 +27,28 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### Shared Module Tests
+
+```sh
+npm run test:shared
+```
+
+### Shared Typecheck
+
+```sh
+npm run typecheck
+```
+
+### Vue SFC Typecheck (Migration Scope)
+
+```sh
+npm run typecheck:vue
+```
+
+## Notes
+
+- The task UI logic is being migrated incrementally to TypeScript.
+- Shared task/preset/decision modules live in `src/shared/*.ts` and are covered by `test:shared` + `typecheck`.
+- `TaskEditModal.vue` is now `lang="ts"` and checked via `typecheck:vue`.
+- Migration details and strictness roadmap: `../docs/TYPESCRIPT_MIGRATION.md`.

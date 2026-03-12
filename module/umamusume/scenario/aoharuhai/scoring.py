@@ -1,5 +1,5 @@
 from module.umamusume.constants.scoring_constants import (
-    DEFAULT_SCORE_VALUE, DEFAULT_SPIRIT_EXPLOSION,
+    DEFAULT_SPIRIT_EXPLOSION,
     DEFAULT_SPECIAL_WEIGHTS, DEFAULT_WIT_SPECIAL_MULTIPLIER
 )
 from module.umamusume.constants.game_constants import JUNIOR_YEAR_END, CLASSIC_YEAR_END
@@ -23,15 +23,11 @@ def compute_aoharu_bonuses(ctx, idx, support_card_info_list, date, period_idx, c
     formula_parts = []
     mult_parts = []
 
-    sv = getattr(ctx.cultivate_detail, 'score_value', DEFAULT_SCORE_VALUE)
+    st_weights = getattr(ctx.cultivate_detail, 'special_training', DEFAULT_SPECIAL_WEIGHTS)
     try:
-        arr = sv[period_idx]
+        w_special = float(st_weights[period_idx])
     except Exception:
-        arr = []
-    try:
-        w_special = arr[4]
-    except Exception:
-        w_special = DEFAULT_SPECIAL_WEIGHTS[period_idx if 0 <= period_idx < len(DEFAULT_SPECIAL_WEIGHTS) else 0]
+        w_special = float(DEFAULT_SPECIAL_WEIGHTS[period_idx if 0 <= period_idx < len(DEFAULT_SPECIAL_WEIGHTS) else 0])
 
     special_bonus = 0.0
     if special_count > 0:

@@ -31,6 +31,42 @@ Inside `Career`, advanced scoring controls are split into collapsible blocks:
 
 This keeps high-frequency options visible while keeping low-frequency tuning concise.
 
+## Frontend Mapper Modules
+
+Task modal save/load logic is split into focused TypeScript modules under `web/src/shared/`:
+
+- `scoringMapper.ts`: training score arrays, caps, NPC, stat multipliers, scoring version fields
+- `eventWeightsMapper.ts`: event option scoring weights (junior/classic/senior)
+- `skillSelectionMapper.ts`: skill priorities/blacklist parse + normalize + task/preset payload conversion
+- `scenarioConfigMapper.ts`: scenario-specific config payloads (`ura_config`, `aoharu_config`, `mant_config`)
+- `palConfigMapper.ts`: PAL toggle/selection/threshold payloads and source application
+- `eventChoicesMapper.ts`: manual event choice overrides
+- `skillAssignmentUtils.ts`: canonical skill selection/blacklist/priority state transitions for drag/drop and bulk actions
+- `presetMapper.ts`: canonical preset serialization used by both `save preset` and `export preset`
+- `taskFormStateMapper.ts`: shared field-application logic for preset load + task edit load
+- `raceFilterUtils.ts`: canonical race filter + character compatibility logic for race panels and quick-select
+- `presetApi.ts`: shared preset transport layer for list/save/delete calls
+
+This prevents drift between task save, preset save, preset export, and load/edit paths.
+
+## Frontend Shared Tests
+
+Shared mapper/utility logic has focused Node tests under `web/tests/shared/`.
+
+Run:
+
+`cd web && npm run test:shared`
+
+Typecheck shared modules:
+
+`cd web && npm run typecheck`
+
+Typecheck Vue SFC migration scope (currently includes `TaskEditModal.vue`):
+
+`cd web && npm run typecheck:vue`
+
+For strictness roadmap and phased hardening plan, see `docs/TYPESCRIPT_MIGRATION.md`.
+
 ## Editing a Running Task
 
 Running tasks can be edited directly from the `Running Task` panel.
@@ -83,6 +119,7 @@ The following task detail fields are applied live while a task is already runnin
 - `rest_threshold`
 - `score_value`
 - `skip_double_circle_unless_high_hint`
+- `special_training`
 - `spirit_explosion`
 - `stat_cap_penalties`
 - `stat_value_multiplier`

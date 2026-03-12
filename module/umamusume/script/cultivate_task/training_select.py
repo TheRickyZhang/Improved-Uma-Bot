@@ -18,7 +18,8 @@ from module.umamusume.constants.game_constants import (
 from module.umamusume.constants.scoring_constants import (
     DEFAULT_BASE_SCORES, DEFAULT_SCORE_VALUE,
     DEFAULT_REST_THRESHOLD,
-    DEFAULT_STAT_VALUE_MULTIPLIER, DEFAULT_NPC_WEIGHT
+    DEFAULT_STAT_VALUE_MULTIPLIER, DEFAULT_NPC_WEIGHT,
+    DEFAULT_WIT_RACE_SEARCH_THRESHOLD, DEFAULT_SUMMER_SCORE_THRESHOLD
 )
 from module.umamusume.constants.timing_constants import (
     TRAINING_CLICK_DELAY, TRAINING_WAIT_DELAY, TRAINING_RETRY_DELAY,
@@ -649,7 +650,7 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
         else:
         
             if not hasattr(ctx.cultivate_detail.turn_info, 'race_search_attempted') and date <= 72:
-                wit_race_threshold = getattr(ctx.cultivate_detail, 'wit_race_search_threshold', 0.15)
+                wit_race_threshold = getattr(ctx.cultivate_detail, 'wit_race_search_threshold', DEFAULT_WIT_RACE_SEARCH_THRESHOLD)
                 
                 current_energy = getattr(ctx.cultivate_detail.turn_info, 'cached_energy', 0)
                 if current_energy == 0:
@@ -679,7 +680,7 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
                     ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
                     return
             
-            summer_threshold = getattr(ctx.cultivate_detail, 'summer_score_threshold', 0.34)
+            summer_threshold = getattr(ctx.cultivate_detail, 'summer_score_threshold', DEFAULT_SUMMER_SCORE_THRESHOLD)
             if date in (35, 36, 59, 60):
                 best_idx_tmp = int(np.argmax(computed_scores))
                 best_score_tmp = computed_scores[best_idx_tmp]

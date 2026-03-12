@@ -23,12 +23,12 @@ There are **two scoring paths**:
 ### Base Score
 `base_score` — Per-training constant added before anything else.
 Default: `[0, 0, 0, 0, 0]`
-Config key: `baseScore`
+Config key: `base_score`
 
 ### Stat Gains
 Each stat point gained from training is multiplied by `stat_value_multiplier[stat_index]`.
 Default: `[1.0, 1.0, 1.0, 1.0, 1.0, 0.5]` (speed, stamina, power, guts, wits, skill_pts)
-Config key: `statValueMultiplier`
+Config key: `stat_value_multiplier`
 
 The 6th value is for skill points, which are worth half a stat point by default.
 
@@ -39,13 +39,13 @@ Each support card present on a training adds score based on favor level:
 
 The `friendship_score_groups` config lets you set per-character multipliers (e.g., boost a specific card's friendship weight by 150%).
 
-Config keys: `scoreValue` (per-period `[friendship, energy, hint]`), `friendship_green_discount` (percent)
+Config keys: `score_value` (per-period `[friendship, energy, hint]`), `friendship_green_discount` (percent)
 
 ### Energy Change
 `energy_change × w_energy_change`
 A training that costs 20 energy contributes `-20 × w_energy_change`.
 Wit training (which restores energy) gets a positive contribution.
-Config: Second value in each `scoreValue` period array. Default: `0.6`
+Config: Second value in each `score_value` period array. Default: `0.6`
 
 ### NPC Cards
 Each NPC (non-support-card character) present adds `npc_weight[period]`.
@@ -53,7 +53,7 @@ Default: `[5, 5, 5, 3, 0]` (Junior, Classic, Senior, Senior Late, Finale)
 Config key: `npc_weight`
 
 ### Hints
-If a support card has a hint available: adds `w_hint` (third value in scoreValue).
+If a support card has a hint available: adds `w_hint` (third value in `score_value`).
 `hint_boost_characters` can multiply this for specific characters.
 Default hint weight: `9` per period.
 
@@ -63,7 +63,7 @@ Separate from regular support cards. Uses `pal_friendship_score` by favor level:
 Config key: `pal_friendship_score`
 
 ### Scenario Bonuses (Aoharu only)
-- **Special Training**: Cards that can increment special training add `special_weight[period] × count`. Wit gets an extra multiplier (`wit_special_multiplier`).
+- **Special Training**: Cards that can increment special training add `special_training[period] × count`. Wit gets an extra multiplier (`wit_special_multiplier`).
   Default special weights: `[15, 12, 9, 7, 0]`
 - **Spirit Explosion**: Cards with spirit explosion add `spirit_explosion[training_type] × count`.
   Default: `[16, 16, 16, 6, 11]` (per training type, or per-period 5×5 matrix)
@@ -97,7 +97,7 @@ When current stat approaches the target (`expect_attribute`), the training score
 Config key: `stat_cap_penalties` — list of `[threshold_pct, multiplier_pct]` pairs
 
 ### Extra Weight
-Per-training multiplier from `extraWeight`. Applied as `score × (1 + extra_weight[idx])`.
+Per-training multiplier from `extra_weight`. Applied as `score × (1 + extra_weight[idx])`.
 Setting to `-1` completely disables a training (score = -infinity).
 Default: `[[0,0,0,0,0], ...]` (no effect)
 
@@ -159,22 +159,23 @@ Multipliers after `|`: `pal`, `fail`, `cap`, `wt` (extra weight), `witspc` (wit 
 
 | Parameter | Default | Description |
 |---|---|---|
-| `baseScore` | `[0,0,0,0,0]` | Per-training base score |
-| `scoreValue` | See above | Per-period `[friendship, energy, hint]` |
+| `base_score` | `[0,0,0,0,0]` | Per-training base score |
+| `score_value` | See above | Per-period `[friendship, energy, hint]` |
 | `friendship_green_discount` | `10` | % less for green vs blue friendship |
-| `statValueMultiplier` | `[1,1,1,1,1,0.5]` | Score per stat point by type |
+| `stat_value_multiplier` | `[1,1,1,1,1,0.5]` | Score per stat point by type |
 | `npc_weight` | `[5,5,5,3,0]` | NPC score per period |
 | `pal_friendship_score` | `[8.0, 5.7, 1.8]` | Pal card friendship by favor |
 | `pal_card_multiplier` | `10` | % bonus when pal present |
 | `spirit_explosion` | `[16,16,16,6,11]` | Aoharu spirit weight per type |
-| `specialTraining` | `[15,12,9,7,0]` | Aoharu special weight per period |
+| `special_training` | `[15,12,9,7,0]` | Aoharu special weight per period |
 | `wit_special_multiplier` | `[1.0, 1.0]` | Extra mult for Wit special [junior, classic] |
 | `compensate_failure` | `true` | Enable failure rate penalty |
 | `failure_rate_divisor` | `50` | Failure rate → multiplier divisor |
 | `stat_cap_penalties` | `[[95,0],[90,70],[80,80],[70,90]]` | Stat cap threshold table |
-| `extraWeight` | `[[0,0,0,0,0],...]` | Per-period per-training multiplier |
+| `extra_weight` | `[[0,0,0,0,0],...]` | Per-period per-training multiplier |
 | `rest_threshold` | `48` | Energy below this → rest |
 | `summer_score_threshold` | `34` | Summer camp race search threshold |
+| `wit_race_search_threshold` | `15` | Wit/race-search fallback threshold |
 | `motivation_threshold_year1` | `3` | Mood threshold for trip (year 1) |
 | `motivation_threshold_year2` | `4` | Mood threshold for trip (year 2) |
 | `motivation_threshold_year3` | `4` | Mood threshold for trip (year 3) |
